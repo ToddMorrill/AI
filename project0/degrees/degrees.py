@@ -121,13 +121,17 @@ def shortest_path(source, target):
     while not frontier.empty():
         node = frontier.remove()
         visited.add(node.state)
-        # return path if the node is the target node
+        # return path if the node is the target node 
+        # (still needed for case when source == target)
         if node.state == target:
             return get_path(node)
         neighbors = neighbors_for_person(node.state)
         for neighbor in neighbors:
-            # expand the node if not already visited
-            if neighbor[1] not in visited:
+            # expand the node if not already visited and not in frontier
+            if (neighbor[1] not in visited) and (not frontier.contains_state(neighbor[1])):
+                # if node is goal state, return immediately (per hint)
+                if neighbor[1] == target:
+                    return get_path(Node(neighbor[1], node, neighbor[0]))
                 # persist parent node and movie in action
                 frontier.add(Node(neighbor[1], node, neighbor[0]))
     # queue is empty, no path found
