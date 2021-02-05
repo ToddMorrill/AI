@@ -111,24 +111,24 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
-    visited = set()
-
+    node = Node(source, None, None)
+    # return path if the node is the target node (case when source == target)
+    if node.state == target:
+        return get_path(node)
     # add the source node to the frontier
     frontier = QueueFrontier()
-    frontier.add(Node(source, None, None))
+    frontier.add(node)
+    visited = set()
 
     # while the frontier isn't empty
     while not frontier.empty():
         node = frontier.remove()
         visited.add(node.state)
-        # return path if the node is the target node 
-        # (still needed for case when source == target)
-        if node.state == target:
-            return get_path(node)
         neighbors = neighbors_for_person(node.state)
         for neighbor in neighbors:
             # expand the node if not already visited and not in frontier
-            if (neighbor[1] not in visited) and (not frontier.contains_state(neighbor[1])):
+            if (neighbor[1] not in visited) and (not frontier.contains_state(
+                    neighbor[1])):
                 # if node is goal state, return immediately (per hint)
                 if neighbor[1] == target:
                     return get_path(Node(neighbor[1], node, neighbor[0]))
