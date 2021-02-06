@@ -53,6 +53,7 @@ def result(board, action):
     """
     action_set = actions(board)
     if action not in action_set:
+        breakpoint()
         raise ValueError(f'{action} not in action set.')
 
     # whose turn is it?
@@ -126,9 +127,49 @@ def utility(board):
     else:
         return 0
 
+def min_value(board):
+    if terminal(board):
+        return utility(board)
+    value = float('inf')
+    for action in actions(board):
+        value = min(value, max_value(result(board, action)))
+    return value
+
+def max_value(board):
+    if terminal(board):
+        return utility(board)
+    value = -float('inf')
+    for action in actions(board):
+        value = max(value, min_value(result(board, action)))
+    return value
 
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    if terminal(board):
+        return None
+
+    # whose turn is it?
+    current_player = player(board)
+
+    if current_player == X:
+        max_action = None
+        max_utility = -float('inf')
+        for action in actions(board):
+            action_utility = min_value(result(board, action))
+            if action_utility > max_utility:
+                max_action = action
+                max_utility = action_utility
+        return max_action
+    else:
+        min_action = None
+        min_utility = float('inf')
+        for action in actions(board):
+            action_utility = max_value(result(board, action))
+            if action_utility < min_utility:
+                min_action = action
+                min_utility = action_utility
+        return min_action
+
+

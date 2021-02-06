@@ -4,11 +4,6 @@ from tictactoe import initial_state, player, actions, result, winner, terminal, 
 from tictactoe import X, O, EMPTY
 
 
-def test_player_initial_state():
-    board = initial_state()
-    assert player(board) == 'X'
-
-
 @pytest.fixture()
 def O_goes():
     return [[X, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]]
@@ -67,6 +62,11 @@ def O_winner_diagonal_two():
 @pytest.fixture()
 def full_board_no_winner():
     return [[X, O, X], [X, O, O], [O, X, X]]
+
+
+def test_player_initial_state():
+    board = initial_state()
+    assert player(board) == 'X'
 
 
 def test_player_O_goes(O_goes):
@@ -153,21 +153,26 @@ def test_terminal_winner(X_winner_row):
     board = X_winner_row
     assert terminal(board)
 
+
 def test_terminal_no_winner(full_board_no_winner):
     board = full_board_no_winner
     assert terminal(board)
+
 
 def test_terminal_in_progress(O_goes):
     board = O_goes
     assert not terminal(board)
 
+
 def test_utility_X_winner(X_winner_row):
     board = X_winner_row
     assert utility(board) == 1
 
+
 def test_utility_O_winner(O_winner_row):
     board = O_winner_row
     assert utility(board) == -1
+
 
 def test_utility_no_winner(full_board_no_winner):
     board = full_board_no_winner
