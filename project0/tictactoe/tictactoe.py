@@ -11,17 +11,24 @@ EMPTY = None
 recursion_counter = 0
 
 
-def initial_state():
-    """
-    Returns starting state of the board.
+def initial_state() -> list:
+    """Returns starting state of the board.
+
+    Returns:
+        list: List of lists containing initial game board.
     """
     return [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY]]
 
 
-def player(board):
-    """
-    Returns player who has the next turn on a board.
+def player(board: list) -> str:
+    """Returns player who has the next turn on a board.
+
+    Args:
+        board (list): List of lists containing the current game board.
+
+    Returns:
+        str: Current player.
     """
     counts = {EMPTY: 0, X: 0, O: 0}
     for row in board:
@@ -36,9 +43,14 @@ def player(board):
         return X
 
 
-def actions(board):
-    """
-    Returns set of all possible actions (i, j) available on the board.
+def actions(board: list) -> set:
+    """Returns set of all possible actions (i, j) available on the board.
+
+    Args:
+        board (list): List of lists containing the current game board.
+
+    Returns:
+        set: Set of all possible actions (i, j) available on the board.
     """
     action_set = set()
     for i, row in enumerate(board):
@@ -48,9 +60,18 @@ def actions(board):
     return action_set
 
 
-def result(board, action):
-    """
-    Returns the board that results from making move (i, j) on the board.
+def result(board: list, action: tuple) -> list:
+    """Returns the board that results from making move (i, j) on the board.
+
+    Args:
+        board (list): List of lists containing the current game board.
+        action (tuple): Position (i, j) where the current player moves.
+
+    Raises:
+        ValueError: If action not in action set.
+
+    Returns:
+        list: List of lists containing the new game board.
     """
     action_set = actions(board)
     if action not in action_set:
@@ -65,9 +86,14 @@ def result(board, action):
     return new_board
 
 
-def winner(board):
-    """
-    Returns the winner of the game, if there is one.
+def winner(board: list) -> str:
+    """Returns the winner of the game, if there is one.
+
+    Args:
+        board (list): List of lists containing the current game board.
+
+    Returns:
+        str: Player who won, if any.
     """
     X_win = [X, X, X]
     O_win = [O, O, O]
@@ -100,9 +126,14 @@ def winner(board):
     return None
 
 
-def terminal(board):
-    """
-    Returns True if game is over, False otherwise.
+def terminal(board: list) -> bool:
+    """Returns True if game is over, False otherwise.
+
+    Args:
+        board (list): List of lists containing the current game board.
+
+    Returns:
+        bool: True if game is over, otherwise False.
     """
     # check if there's a winner
     if winner(board) is not None:
@@ -115,9 +146,16 @@ def terminal(board):
     return False
 
 
-def utility(board):
-    """
-    Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
+def utility(board: list) -> int:
+    """Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
+
+    NB: this function should only be called in if terminal(board) == True.
+
+    Args:
+        board (list): List of lists containing the current game board.
+
+    Returns:
+        int: Value of the game board.
     """
     game_result = winner(board)
     if game_result == X:
@@ -128,7 +166,19 @@ def utility(board):
         return 0
 
 
-def min_value(board, alpha, beta):
+def min_value(board: list, alpha: int, beta: int) -> int:
+    """Min player's function to determine the value of the current board state.
+
+    Args:
+        board (list): List of lists containing the current game board.
+        alpha (int): The value of the best choice found so far for the max 
+        player.
+        beta (int): The value of the best choice found so far for the min 
+        player.
+
+    Returns:
+        int: Value of the current board state.
+    """
     #recording metrics
     global recursion_counter
     recursion_counter += 1
@@ -144,7 +194,19 @@ def min_value(board, alpha, beta):
     return value
 
 
-def max_value(board, alpha, beta):
+def max_value(board: list, alpha: int, beta: int) -> int:
+    """Max player's function to determine the value of the current board state.
+
+    Args:
+        board (list): List of lists containing the current game board.
+        alpha (int): The value of the best choice found so far for the max 
+        player.
+        beta (int): The value of the best choice found so far for the min 
+        player.
+
+    Returns:
+        int: Value of the current board state.
+    """
     # recording metrics
     global recursion_counter
     recursion_counter += 1
@@ -160,9 +222,15 @@ def max_value(board, alpha, beta):
     return value
 
 
-def minimax(board):
-    """
-    Returns the optimal action for the current player on the board.
+def minimax(board: int) -> tuple:
+    """Returns the optimal action for the current player on the board. This
+    function uses Alpha-Beta pruning to reduce computation.
+
+    Args:
+        board (int): List of lists containing the current game board.
+
+    Returns:
+        tuple: Best action (i, j) for the current player.
     """
     if terminal(board):
         return None
