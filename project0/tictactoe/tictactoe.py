@@ -176,7 +176,8 @@ def minimax(board):
         max_action = None
         max_utility = -float('inf')
         for action in actions(board):
-            action_utility = min_value(result(board, action), -float('inf'), float('inf'))
+            action_utility = min_value(result(board, action), -float('inf'),
+                                       float('inf'))
             if action_utility > max_utility:
                 max_action = action
                 max_utility = action_utility
@@ -188,7 +189,8 @@ def minimax(board):
         min_action = None
         min_utility = float('inf')
         for action in actions(board):
-            action_utility = max_value(result(board, action), -float('inf'), float('inf'))
+            action_utility = max_value(result(board, action), -float('inf'),
+                                       float('inf'))
             if action_utility < min_utility:
                 min_action = action
                 min_utility = action_utility
@@ -196,6 +198,7 @@ def minimax(board):
         print(recursion_counter)
         recursion_counter = 0
         return min_action
+
 
 if __name__ == '__main__':
     minimax(initial_state())

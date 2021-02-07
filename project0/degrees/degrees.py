@@ -13,9 +13,11 @@ people = {}
 movies = {}
 
 
-def load_data(directory):
-    """
-    Load data from CSV files into memory.
+def load_data(directory: str) -> None:
+    """Load data from CSV files into memory.
+
+    Args:
+        directory (str): Directory where data is stored.
     """
     # Load people
     with open(f"{directory}/people.csv", encoding="utf-8") as f:
@@ -52,10 +54,14 @@ def load_data(directory):
                 pass
 
 
-def person_id_for_name(name):
-    """
-    Returns the IMDB id for a person's name,
-    resolving ambiguities as needed.
+def person_id_for_name(name: str) -> int:
+    """Returns the IMDB id for a person's name, resolving ambiguities as needed.
+
+    Args:
+        name (str): Person's name.
+
+    Returns:
+        int: Person's ID.
     """
     person_ids = list(names.get(name.lower(), set()))
     if len(person_ids) == 0:
@@ -78,10 +84,15 @@ def person_id_for_name(name):
         return person_ids[0]
 
 
-def neighbors_for_person(person_id):
-    """
-    Returns (movie_id, person_id) pairs for people
-    who starred with a given person.
+def neighbors_for_person(person_id: int) -> set:
+    """Returns (movie_id, person_id) pairs for people who starred with a given 
+    person.
+
+    Args:
+        person_id (int): Person ID.
+
+    Returns:
+        set: Set of neighbors.
     """
     movie_ids = people[person_id]["movies"]
     neighbors = set()
@@ -91,7 +102,16 @@ def neighbors_for_person(person_id):
     return neighbors
 
 
-def get_path(node):
+def get_path(node: Node) -> list:
+    """Utility function to follow the linked list back to the source node.
+
+    Args:
+        node (Node): The node to start traversing from.
+
+    Returns:
+        list: List of (movie_id, person_id) pairs along the path back to the 
+        source node.
+    """
     # handle case where the node is the source and the target
     if node.parent is None:
         # return length 0 list per problem specification
@@ -104,12 +124,19 @@ def get_path(node):
     return path
 
 
-def shortest_path(source, target):
-    """
-    Returns the shortest list of (movie_id, person_id) pairs
+def shortest_path(source: int, target: int) -> list:
+    """ Returns the shortest list of (movie_id, person_id) pairs
     that connect the source to the target.
 
     If no possible path, returns None.
+
+    Args:
+        source (int): Source state.
+        target (int): Target state.
+
+    Returns:
+        list: List of (movie_id, person_id) pairs along the path back to the 
+        source node.
     """
     node = Node(source, None, None)
     # return path if the node is the target node (case when source == target)
