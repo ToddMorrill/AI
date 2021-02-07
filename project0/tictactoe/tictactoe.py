@@ -128,7 +128,7 @@ def utility(board):
         return 0
 
 
-def min_value(board):
+def min_value(board, alpha, beta):
     #recording metrics
     global recursion_counter
     recursion_counter += 1
@@ -137,11 +137,14 @@ def min_value(board):
         return utility(board)
     value = float('inf')
     for action in actions(board):
-        value = min(value, max_value(result(board, action)))
+        value = min(value, max_value(result(board, action), alpha, beta))
+        if value <= alpha:
+            return value
+        beta = min(beta, value)
     return value
 
 
-def max_value(board):
+def max_value(board, alpha, beta):
     # recording metrics
     global recursion_counter
     recursion_counter += 1
@@ -150,7 +153,10 @@ def max_value(board):
         return utility(board)
     value = -float('inf')
     for action in actions(board):
-        value = max(value, min_value(result(board, action)))
+        value = max(value, min_value(result(board, action), alpha, beta))
+        if value >= beta:
+            return value
+        alpha = max(alpha, value)
     return value
 
 
@@ -170,7 +176,7 @@ def minimax(board):
         max_action = None
         max_utility = -float('inf')
         for action in actions(board):
-            action_utility = min_value(result(board, action))
+            action_utility = min_value(result(board, action), -float('inf'), float('inf'))
             if action_utility > max_utility:
                 max_action = action
                 max_utility = action_utility
@@ -182,7 +188,7 @@ def minimax(board):
         min_action = None
         min_utility = float('inf')
         for action in actions(board):
-            action_utility = max_value(result(board, action))
+            action_utility = max_value(result(board, action), -float('inf'), float('inf'))
             if action_utility < min_utility:
                 min_action = action
                 min_utility = action_utility

@@ -189,6 +189,6 @@ def test_minimax_empty_board(capsys):
     action = minimax(board)
     end = time.time()
     duration = end - start
-    assert duration > 29
+    assert duration < 3
     out, err = capsys.readouterr()
-    assert out == '549945\n'
+    assert out == '40107\n'
