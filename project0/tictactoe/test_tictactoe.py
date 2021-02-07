@@ -1,6 +1,8 @@
+import time
+
 import pytest
 
-from tictactoe import initial_state, player, actions, result, winner, terminal, utility
+from tictactoe import initial_state, player, actions, result, winner, terminal, utility, minimax
 from tictactoe import X, O, EMPTY
 
 
@@ -177,3 +179,16 @@ def test_utility_O_winner(O_winner_row):
 def test_utility_no_winner(full_board_no_winner):
     board = full_board_no_winner
     assert utility(board) == 0
+
+
+def test_minimax_empty_board(capsys):
+    global recursion_counter
+    recursion_counter = 0
+    board = initial_state()
+    start = time.time()
+    action = minimax(board)
+    end = time.time()
+    duration = end - start
+    assert duration > 29
+    out, err = capsys.readouterr()
+    assert out == '549945\n'

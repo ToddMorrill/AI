@@ -8,6 +8,7 @@ import math
 X = "X"
 O = "O"
 EMPTY = None
+recursion_counter = 0
 
 
 def initial_state():
@@ -53,7 +54,6 @@ def result(board, action):
     """
     action_set = actions(board)
     if action not in action_set:
-        breakpoint()
         raise ValueError(f'{action} not in action set.')
 
     # whose turn is it?
@@ -127,7 +127,12 @@ def utility(board):
     else:
         return 0
 
+
 def min_value(board):
+    #recording metrics
+    global recursion_counter
+    recursion_counter += 1
+
     if terminal(board):
         return utility(board)
     value = float('inf')
@@ -135,13 +140,19 @@ def min_value(board):
         value = min(value, max_value(result(board, action)))
     return value
 
+
 def max_value(board):
+    # recording metrics
+    global recursion_counter
+    recursion_counter += 1
+
     if terminal(board):
         return utility(board)
     value = -float('inf')
     for action in actions(board):
         value = max(value, min_value(result(board, action)))
     return value
+
 
 def minimax(board):
     """
@@ -153,6 +164,8 @@ def minimax(board):
     # whose turn is it?
     current_player = player(board)
 
+    # recording metrics
+    global recursion_counter
     if current_player == X:
         max_action = None
         max_utility = -float('inf')
@@ -161,6 +174,9 @@ def minimax(board):
             if action_utility > max_utility:
                 max_action = action
                 max_utility = action_utility
+        # recording metrics
+        print(recursion_counter)
+        recursion_counter = 0
         return max_action
     else:
         min_action = None
@@ -170,6 +186,10 @@ def minimax(board):
             if action_utility < min_utility:
                 min_action = action
                 min_utility = action_utility
+        # recording metrics
+        print(recursion_counter)
+        recursion_counter = 0
         return min_action
 
-
+if __name__ == '__main__':
+    minimax(initial_state())
