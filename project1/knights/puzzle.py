@@ -12,15 +12,21 @@ CKnave = Symbol("C is a Knave")
 # Puzzle 0
 # A says "I am both a knight and a knave."
 standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)))
-knowledge0 = And(standard_specs, Or(And(AKnight, AKnave), AKnave))
+knowledge0 = And(
+    standard_specs,
+    # both knight/knave (spoiler: it's a lie) or A is a lying knave
+    Or(And(AKnight, AKnave), AKnave))
 
 # Puzzle 1
 # A says "We are both knaves."
 # B says nothing.
 standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)),
                      Or(BKnight, BKnave), Not(And(BKnight, BKnave)))
-knowledge1 = And(standard_specs, Or(And(AKnave, BKnave), AKnave),
-                 Not(And(And(AKnave, BKnave), AKnave)))
+knowledge1 = And(
+    standard_specs,
+    # both knaves (spoiler: not possible)) or A is a lying knave
+    Or(And(AKnave, BKnave), AKnave),
+    Not(And(And(AKnave, BKnave), AKnave)))  # can't be both
 
 # Puzzle 2
 # A says "We are the same kind."
@@ -29,11 +35,12 @@ standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)),
                      Or(BKnight, BKnave), Not(And(BKnight, BKnave)))
 knowledge2 = And(
     standard_specs,
-    Or(And(AKnight, BKnight), And(AKnave, BKnight)),  # is this valid?
-    # Not(And(And(AKnight, BKnight), And(AKnave, BKnight))),
-    Or(And(BKnight, AKnave), BKnave),
-    # Not(And(And(BKnight, AKnave), BKnave))
-)
+    # either both knights, or A is a lying Knave
+    Or(And(AKnight, BKnight), AKnave),
+    # if A is a lying Knave, then they are not the same kind (i.e. BKnight)
+    Implication(AKnave, BKnight),
+    # either different (and B is an honest Knight) or B is a lying Knave
+    Or(And(BKnight, AKnave), BKnave))
 
 # Puzzle 3
 # A says either "I am a knight." or "I am a knave.", but you don't know which.
@@ -45,15 +52,15 @@ standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)),
                      Or(CKnight, CKnave), Not(And(CKnight, CKnave)))
 knowledge3 = And(
     standard_specs,
-    Or(AKnight, AKnave),  # already captured in standard specs
-    # the claim 'I am a Knave' is not possible
-    Not(And(AKnight, AKnave)),  # already captured in standard specs
-    BKnave,  # A didn't say 'I am a knave' - not possible
-    Not(And(AKnave, BKnave)),
-    Or(CKnave, BKnave),
-    Not(And(CKnave, BKnave)),
-    Or(And(AKnight, CKnight), CKnave),
-    Not(And(And(AKnight, CKnight), CKnave)))
+    # the claim 'I am a Knave' -> I lie -> I am a Knight -> I tell the truth (contradiction, wasn't said)
+    # from which we conclude A said 'I am a Knight', so A is an honest Knight or lying Knave
+    # Or(AKnight, AKnave) already captured in standard specs
+    # If A said 'I am a knight' (didn't say 'I am a knave') then B is a lying knave
+    Implication(Or(AKnight, AKnave), BKnave),
+    # Either C is a knave (and B is an honest knight) or B is a lying knave and C is a knight
+    Or(And(CKnave, BKnight), And(BKnave, CKnight)),
+    # Either C is an honest knight and AKnight or C is a lying knave and A is a knave
+    Or(And(AKnight, CKnight), And(CKnave, AKnave)))
 
 
 def main():
