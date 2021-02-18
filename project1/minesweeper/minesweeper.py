@@ -106,6 +106,8 @@ class Sentence():
         # if len(self.cells) == self.count == 0:
         #     breakpoint()
         if len(self.cells) == self.count:
+            # print(self.__str__())
+            # breakpoint()
             return self.cells
         return None
 
@@ -125,11 +127,11 @@ class Sentence():
         if cell in self.cells:
             # remove cell and decrement counter
             self.cells.remove(cell)
-            if self.cells == set():
-                breakpoint()
+            # if self.cells == set():
+            #     breakpoint()
+            self.count -= 1  # any concerns about going negative?
             if len(self.cells) < self.count:
                 breakpoint()
-            self.count -= 1  # any concerns about going negative?
 
     def mark_safe(self, cell):
         """
@@ -139,10 +141,12 @@ class Sentence():
         if cell in self.cells:
             # remove cell, don't decrement counter
             self.cells.remove(cell)
-            if self.cells == set():
-                breakpoint()
+            # if self.cells == set():
+            #     breakpoint()
             if len(self.cells) < self.count:
+                # why would this happen?
                 breakpoint()
+            # make sure 
 
 
 iteration_counter = 0
@@ -211,22 +215,28 @@ class MinesweeperAI():
     def mark_mines_safes_delete_sentences(self):
         changes = False
         new_knowledge = []
-        for sentence in self.knowledge:
+        # will be modifying the items in self.knowledge
+        knowledge_copy = self.knowledge
+        for sentence in knowledge_copy:
             known_mines = sentence.known_mines()
             known_safes = sentence.known_safes()
+            if known_safes and known_mines:
+                breakpoint()
             if known_mines:
-                # update mines and drop sentence from KB
-                self.mines.update(known_mines)
+                # breakpoint()
+                # update mines, sentences, and drop sentence from KB
+                for cell in list(known_mines):
+                    self.mark_mine(cell)
                 changes = True
             elif known_safes:
-                # update safes and drop sentence from KB
-                self.safes.update(known_safes)
+                # update safes, sentences, and drop sentence from KB
+                for cell in list(known_safes):
+                    self.mark_safe(cell)
                 changes = True
-            else:
-                if sentence.cells == set():
-                    breakpoint()
-                # if no conclusion drawn, keep sentence
-                new_knowledge.append(sentence)
+            if (sentence.cells == set()) and (sentence.count == 0):
+                continue
+            # if no conclusion drawn, keep sentence
+            new_knowledge.append(sentence)
         # update knowledge
         self.knowledge = new_knowledge
         return changes
@@ -238,10 +248,15 @@ class MinesweeperAI():
         new_knowledge = []
         # need to deep copy this?
         # existing_knowledge = self.knowledge
-        for sentence1 in enumerate(self.knowledge):
-            for sentence2 in enumerate(self.knowledge):
+        for sentence1 in self.knowledge:
+            for sentence2 in self.knowledge:
                 # no need to compare to self
                 if sentence1 == sentence2:
+                    # TODO: find a better approach
+                    if sentence1 not in new_knowledge:
+                        new_knowledge.append(sentence1)
+                    if sentence2 not in new_knowledge:
+                        new_knowledge.append(sentence2)
                     continue
                 elif sentence1.cells == sentence2.cells:
                     breakpoint()
@@ -274,17 +289,10 @@ class MinesweeperAI():
         return changes, other_changes
 
     def infer_new_sentences(self):
-        # TODO: probably looping infinitely
-        # guaranteed to execute once
-        infer_changes, delete_changes = self._infer_new_sentences()
+        infer_changes, delete_changes = True, True
         # iteratively update until the knowledge stops changing
-        global iteration_counter
         while infer_changes or delete_changes:
-            if iteration_counter > 10:
-                breakpoint()
-            iteration_counter += 1
             infer_changes, delete_changes = self._infer_new_sentences()
-        iteration_counter = 0
 
     def add_knowledge(self, cell, count):
         """
@@ -301,6 +309,7 @@ class MinesweeperAI():
             5) add any new sentences to the AI's knowledge base
                if they can be inferred from existing knowledge
         """
+        # breakpoint()
         # mark cell as a move
         self.moves_made.add(cell)
 
@@ -315,6 +324,8 @@ class MinesweeperAI():
         if len(unknown_neighbors) > 0:
             # count should be the min(count, len(unknown_neighbors))
             revised_count = min(count, len(unknown_neighbors))
+            # if revised_count == len(unknown_neighbors):
+                # breakpoint()
             self.knowledge.append(Sentence(unknown_neighbors, revised_count))
 
         # check for any known safes or mines
