@@ -231,18 +231,16 @@ class MinesweeperAI():
         self.knowledge = new_knowledge
         return changes
 
-    def _infer_new_sentences(self, knowledge):
+    def _infer_new_sentences(self):
         # breakpoint()
         # should this be implemented by depth first recursion?
+        changes = False
         new_knowledge = []
         # need to deep copy this?
-        existing_knowledge = self.knowledge
-        for i, sentence1 in enumerate(existing_knowledge):
-            for j, sentence2 in enumerate(knowledge):
-                # if i == j:
-                #     continue
-
-                # don't think this should happen, but maybe?
+        # existing_knowledge = self.knowledge
+        for sentence1 in enumerate(self.knowledge):
+            for sentence2 in enumerate(self.knowledge):
+                # no need to compare to self
                 if sentence1 == sentence2:
                     continue
                 elif sentence1.cells == sentence2.cells:
@@ -255,33 +253,37 @@ class MinesweeperAI():
                     if count > len(difference):
                         breakpoint()
                     new_sentence = Sentence(difference, count)
-                    if new_sentence.cells == set():
-                        breakpoint()
-                        continue  # do we need to do anything here?
                     if new_sentence in self.knowledge:
                         breakpoint()
                         continue
-                    self.knowledge.append(new_sentence)
                     new_knowledge.append(new_sentence)
+                    if sentence1 not in new_knowledge:
+                        new_knowledge.append(sentence1)
+                    if sentence2 not in new_knowledge:
+                        new_knowledge.append(sentence2)
+                    changes = True
+                    # self.knowledge.append(new_sentence)
+                    # new_knowledge.append(new_sentence)
                     # remove old sentence, no longer needed
-                    self.knowledge.remove(sentence2)
+                    # self.knowledge.remove(sentence2)
+        self.knowledge = new_knowledge
 
         # should we try to clean up the knowledge base here too?
-        self.mark_mines_safes_delete_sentences()
+        other_changes = self.mark_mines_safes_delete_sentences()
 
-        return new_knowledge
+        return changes, other_changes
 
     def infer_new_sentences(self):
         # TODO: probably looping infinitely
         # guaranteed to execute once
-        new_knowledge = self._infer_new_sentences(self.knowledge)
+        infer_changes, delete_changes = self._infer_new_sentences()
         # iteratively update until the knowledge stops changing
         global iteration_counter
-        while len(new_knowledge) > 0:
+        while infer_changes or delete_changes:
             if iteration_counter > 10:
                 breakpoint()
             iteration_counter += 1
-            new_knowledge = self._infer_new_sentences(new_knowledge)
+            infer_changes, delete_changes = self._infer_new_sentences()
         iteration_counter = 0
 
     def add_knowledge(self, cell, count):
