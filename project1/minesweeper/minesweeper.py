@@ -6,7 +6,6 @@ class Minesweeper():
     """
     Minesweeper game representation
     """
-
     def __init__(self, height=8, width=8, mines=8):
 
         # Set initial width, height, and number of mines
@@ -90,7 +89,6 @@ class Sentence():
     A sentence consists of a set of board cells,
     and a count of the number of those cells which are mines.
     """
-
     def __init__(self, cells, count):
         self.cells = set(cells)
         self.count = count
@@ -105,6 +103,8 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
+        # if len(self.cells) == self.count == 0:
+        #     breakpoint()
         if len(self.cells) == self.count:
             return self.cells
         return None
@@ -125,9 +125,11 @@ class Sentence():
         if cell in self.cells:
             # remove cell and decrement counter
             self.cells.remove(cell)
+            if self.cells == set():
+                breakpoint()
             if len(self.cells) < self.count:
                 breakpoint()
-            self.count -= 1 # any concerns about going negative?
+            self.count -= 1  # any concerns about going negative?
 
     def mark_safe(self, cell):
         """
@@ -137,16 +139,19 @@ class Sentence():
         if cell in self.cells:
             # remove cell, don't decrement counter
             self.cells.remove(cell)
+            if self.cells == set():
+                breakpoint()
             if len(self.cells) < self.count:
                 breakpoint()
 
+
 iteration_counter = 0
+
 
 class MinesweeperAI():
     """
     Minesweeper game player
     """
-
     def __init__(self, height=8, width=8):
 
         # Set initial height and width
@@ -191,33 +196,46 @@ class MinesweeperAI():
                 if (i, j) == cell:
                     continue
                 # if cell off board
-                if (i < 0) or (i >= self.height) or (j < 0) or (j >= self.width):
+                if (i < 0) or (i >= self.height) or (j < 0) or (j >=
+                                                                self.width):
                     continue
 
                 # if cell unknown, add it to the set
-                if ((i, j) not in self.mines) and ((i, j) not in self.safes):
+                # TODO: probably not necessary to check in moves_made 
+                if ((i, j) not in self.mines) and (
+                    (i, j) not in self.safes) and ((i, j)
+                                                   not in self.moves_made):
                     unknowns.add((i, j))
         return unknowns
 
     def mark_mines_safes_delete_sentences(self):
+        changes = False
         new_knowledge = []
         for sentence in self.knowledge:
             known_mines = sentence.known_mines()
             known_safes = sentence.known_safes()
             if known_mines:
+                # update mines and drop sentence from KB
                 self.mines.update(known_mines)
+                changes = True
             elif known_safes:
+                # update safes and drop sentence from KB
                 self.safes.update(known_safes)
+                changes = True
             else:
+                if sentence.cells == set():
+                    breakpoint()
                 # if no conclusion drawn, keep sentence
                 new_knowledge.append(sentence)
         # update knowledge
         self.knowledge = new_knowledge
+        return changes
 
     def _infer_new_sentences(self, knowledge):
         # breakpoint()
         # should this be implemented by depth first recursion?
         new_knowledge = []
+        # need to deep copy this?
         existing_knowledge = self.knowledge
         for i, sentence1 in enumerate(existing_knowledge):
             for j, sentence2 in enumerate(knowledge):
@@ -227,6 +245,8 @@ class MinesweeperAI():
                 # don't think this should happen, but maybe?
                 if sentence1 == sentence2:
                     continue
+                elif sentence1.cells == sentence2.cells:
+                    breakpoint()
                 elif sentence1.cells.issubset(sentence2.cells):
                     difference = sentence2.cells.difference(sentence1.cells)
                     if sentence2.count < sentence1.count:
@@ -237,7 +257,7 @@ class MinesweeperAI():
                     new_sentence = Sentence(difference, count)
                     if new_sentence.cells == set():
                         breakpoint()
-                        continue # do we need to do anything here?
+                        continue  # do we need to do anything here?
                     if new_sentence in self.knowledge:
                         breakpoint()
                         continue
@@ -263,7 +283,7 @@ class MinesweeperAI():
             iteration_counter += 1
             new_knowledge = self._infer_new_sentences(new_knowledge)
         iteration_counter = 0
-        
+
     def add_knowledge(self, cell, count):
         """
         Called when the Minesweeper board tells us, for a given
@@ -290,7 +310,10 @@ class MinesweeperAI():
         unknown_neighbors = self.get_unknown_neighbors(cell)
 
         # add new sentence to KB
-        self.knowledge.append(Sentence(unknown_neighbors, count))
+        if len(unknown_neighbors) > 0:
+            # count should be the min(count, len(unknown_neighbors))
+            revised_count = min(count, len(unknown_neighbors))
+            self.knowledge.append(Sentence(unknown_neighbors, revised_count))
 
         # check for any known safes or mines
         # delete sentences if possible
@@ -299,8 +322,6 @@ class MinesweeperAI():
         # infer new sentences
         self.infer_new_sentences()
         # breakpoint()
-        
-
 
     def make_safe_move(self):
         """
