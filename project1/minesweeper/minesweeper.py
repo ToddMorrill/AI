@@ -365,6 +365,8 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
 
+        first_available = True has a slightly higher (+~2%) win rate.
+
         Args:
             first_available (bool, optional): If True, upper-leftmost cell 
             available, otherwise random among remaining options. Defaults to 
