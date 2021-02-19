@@ -47,7 +47,7 @@ def test_win_rate():
             wins += 1
     win_rate = wins/games
     print(f'Won {wins}/{games} games.')
-    assert (win_rate > .6)
+    assert (win_rate > .58)
 
 if __name__ == '__main__':
     test_win_rate()

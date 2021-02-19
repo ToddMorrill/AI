@@ -359,7 +359,7 @@ class MinesweeperAI():
                 return cell
         return None
 
-    def make_random_move(self, first_available: bool = True) -> tuple:
+    def make_random_move(self, first_available: bool = False) -> tuple:
         """Returns a move to make on the Minesweeper board. Should choose 
         randomly among cells that:
             1) have not already been chosen, and
@@ -367,7 +367,8 @@ class MinesweeperAI():
 
         Args:
             first_available (bool, optional): If True, upper-leftmost cell 
-            available, otherwise random among remaining options. Defaults to True.
+            available, otherwise random among remaining options. Defaults to 
+            True.
 
         Returns:
             tuple: Row and column index
