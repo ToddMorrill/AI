@@ -103,21 +103,20 @@ class Sentence():
         """
         Returns the set of all cells in self.cells known to be mines.
         """
-        # if len(self.cells) == self.count == 0:
-        #     breakpoint()
+        # inference rule 1
         if len(self.cells) == self.count:
-            # print(self.__str__())
-            # breakpoint()
             return self.cells
-        return None
+        # return empty set
+        return set()
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
+        # inference rule 2
         if self.count == 0:
             return self.cells
-        return None
+        return set()
 
     def mark_mine(self, cell):
         """
@@ -127,8 +126,6 @@ class Sentence():
         if cell in self.cells:
             # remove cell and decrement counter
             self.cells.remove(cell)
-            # if self.cells == set():
-            #     breakpoint()
             self.count -= 1  # any concerns about going negative?
             if len(self.cells) < self.count:
                 breakpoint()
@@ -141,15 +138,12 @@ class Sentence():
         if cell in self.cells:
             # remove cell, don't decrement counter
             self.cells.remove(cell)
-            # if self.cells == set():
-            #     breakpoint()
             if len(self.cells) < self.count:
                 # why would this happen?
                 breakpoint()
-            # make sure 
 
 
-iteration_counter = 0
+iterator = 0
 
 
 class MinesweeperAI():
@@ -192,6 +186,7 @@ class MinesweeperAI():
 
     def get_unknown_neighbors(self, cell):
         unknowns = set()
+        mine_count = 0
         # Loop over all cells within one row and column
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
@@ -205,94 +200,89 @@ class MinesweeperAI():
                     continue
 
                 # if cell unknown, add it to the set
-                # TODO: probably not necessary to check in moves_made 
-                if ((i, j) not in self.mines) and (
-                    (i, j) not in self.safes) and ((i, j)
-                                                   not in self.moves_made):
+                if ((i, j) not in self.mines) and ((i, j) not in self.safes):
                     unknowns.add((i, j))
-        return unknowns
+
+                # if cell is a mine, increment counter
+                if (i, j) in self.mines:
+                    mine_count += 1
+        return unknowns, mine_count
 
     def mark_mines_safes_delete_sentences(self):
         changes = False
         new_knowledge = []
         # will be modifying the items in self.knowledge
-        knowledge_copy = self.knowledge
-        for sentence in knowledge_copy:
+        for sentence in self.knowledge:
             known_mines = sentence.known_mines()
             known_safes = sentence.known_safes()
             if known_safes and known_mines:
                 breakpoint()
+
+            # update mines, sentences, and drop sentence from KB
             if known_mines:
-                # breakpoint()
-                # update mines, sentences, and drop sentence from KB
+                # does this have to be list?
                 for cell in list(known_mines):
                     self.mark_mine(cell)
                 changes = True
+            # update safes, sentences, and drop sentence from KB
             elif known_safes:
-                # update safes, sentences, and drop sentence from KB
+                # does this have to be list
                 for cell in list(known_safes):
                     self.mark_safe(cell)
                 changes = True
-            if (sentence.cells == set()) and (sentence.count == 0):
-                continue
-            # if no conclusion drawn, keep sentence
-            new_knowledge.append(sentence)
-        # update knowledge
-        self.knowledge = new_knowledge
+            # no conclusion drawn, keep sentence
+            else:
+                new_knowledge.append(sentence)
+
+        # update knowledge, remove duplicates and empty sentences
+        self.knowledge = []
+        for sentence in new_knowledge:
+            not_empty_sentence = ((sentence.cells != set())
+                                  and (sentence.count != 0))
+            sentence_not_in_knowledge = (sentence not in self.knowledge)
+            if not_empty_sentence and sentence_not_in_knowledge:
+                self.knowledge.append(sentence)
         return changes
 
     def _infer_new_sentences(self):
-        # breakpoint()
-        # should this be implemented by depth first recursion?
         changes = False
         new_knowledge = []
-        # need to deep copy this?
-        # existing_knowledge = self.knowledge
         for sentence1 in self.knowledge:
             for sentence2 in self.knowledge:
                 # no need to compare to self
                 if sentence1 == sentence2:
-                    # TODO: find a better approach
-                    if sentence1 not in new_knowledge:
-                        new_knowledge.append(sentence1)
-                    if sentence2 not in new_knowledge:
-                        new_knowledge.append(sentence2)
                     continue
-                elif sentence1.cells == sentence2.cells:
-                    breakpoint()
                 elif sentence1.cells.issubset(sentence2.cells):
+                    if sentence1.cells == set():
+                        breakpoint()
                     difference = sentence2.cells.difference(sentence1.cells)
-                    if sentence2.count < sentence1.count:
-                        breakpoint()
                     count = sentence2.count - sentence1.count
-                    if count > len(difference):
-                        breakpoint()
                     new_sentence = Sentence(difference, count)
-                    if new_sentence in self.knowledge:
-                        breakpoint()
-                        continue
-                    new_knowledge.append(new_sentence)
-                    if sentence1 not in new_knowledge:
-                        new_knowledge.append(sentence1)
-                    if sentence2 not in new_knowledge:
-                        new_knowledge.append(sentence2)
-                    changes = True
-                    # self.knowledge.append(new_sentence)
-                    # new_knowledge.append(new_sentence)
-                    # remove old sentence, no longer needed
-                    # self.knowledge.remove(sentence2)
-        self.knowledge = new_knowledge
+                    if (new_sentence
+                            not in new_knowledge) and (new_sentence
+                                                       not in self.knowledge):
+                        new_knowledge.append(new_sentence)
+                        changes = True
 
-        # should we try to clean up the knowledge base here too?
-        other_changes = self.mark_mines_safes_delete_sentences()
+        self.knowledge += new_knowledge
 
-        return changes, other_changes
+        # clean up the KB
+        mark_changes = True
+        while mark_changes:
+            mark_changes = self.mark_mines_safes_delete_sentences()
+
+        return changes
 
     def infer_new_sentences(self):
-        infer_changes, delete_changes = True, True
+        infer_changes = True
         # iteratively update until the knowledge stops changing
-        while infer_changes or delete_changes:
-            infer_changes, delete_changes = self._infer_new_sentences()
+        global iterator
+        while infer_changes:
+            if iterator > 10:
+                breakpoint()
+            iterator += 1
+            infer_changes = self._infer_new_sentences()
+        iterator = 0
 
     def add_knowledge(self, cell, count):
         """
@@ -318,23 +308,22 @@ class MinesweeperAI():
 
         # add new sentence to knowledge base
         # get unknown neighbors
-        unknown_neighbors = self.get_unknown_neighbors(cell)
+        unknown_neighbors, mine_count = self.get_unknown_neighbors(cell)
 
         # add new sentence to KB
         if len(unknown_neighbors) > 0:
-            # count should be the min(count, len(unknown_neighbors))
-            revised_count = min(count, len(unknown_neighbors))
-            # if revised_count == len(unknown_neighbors):
-                # breakpoint()
-            self.knowledge.append(Sentence(unknown_neighbors, revised_count))
+            # subtract known mines from the count
+            self.knowledge.append(
+                Sentence(unknown_neighbors, count - mine_count))
 
         # check for any known safes or mines
         # delete sentences if possible
-        self.mark_mines_safes_delete_sentences()
+        mark_changes = True
+        while mark_changes:
+            mark_changes = self.mark_mines_safes_delete_sentences()
 
         # infer new sentences
         self.infer_new_sentences()
-        # breakpoint()
 
     def make_safe_move(self):
         """
