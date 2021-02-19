@@ -11,56 +11,52 @@ CKnave = Symbol("C is a Knave")
 
 # Puzzle 0
 # A says "I am both a knight and a knave."
-standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)))
+standard_specs = Biconditional(AKnight, Not(AKnave))
 knowledge0 = And(
     standard_specs,
-    # both knight/knave (spoiler: it's a lie) or A is a lying knave
-    Or(And(AKnight, AKnave), AKnave))
+    # AKnave iff (AKnave and AKnight)
+    Biconditional(AKnave, And(AKnight, AKnave)))
 
 # Puzzle 1
 # A says "We are both knaves."
 # B says nothing.
-standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)),
-                     Or(BKnight, BKnave), Not(And(BKnight, BKnave)))
+standard_specs = And(Biconditional(AKnight, Not(AKnave)),
+                     Biconditional(BKnight, Not(BKnave)))
 knowledge1 = And(
     standard_specs,
-    # both knaves (spoiler: not possible)) or A is a lying knave
-    Or(And(AKnave, BKnave), AKnave),
-    Not(And(And(AKnave, BKnave), AKnave)))  # can't be both
+    # AKnight iff (AKnave and BKnave)
+    Biconditional(AKnight, And(AKnave, BKnave)))
 
 # Puzzle 2
 # A says "We are the same kind."
 # B says "We are of different kinds."
-standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)),
-                     Or(BKnight, BKnave), Not(And(BKnight, BKnave)))
+standard_specs = And(Biconditional(AKnight, Not(AKnave)),
+                     Biconditional(BKnight, Not(BKnave)))
 knowledge2 = And(
     standard_specs,
-    # either both knights, or A is a lying Knave
-    Or(And(AKnight, BKnight), AKnave),
-    # if A is a lying Knave, then they are not the same kind (i.e. BKnight)
-    Implication(AKnave, BKnight),
-    # either different (and B is an honest Knight) or B is a lying Knave
-    Or(And(BKnight, AKnave), BKnave))
+    # AKnight iff (AKnight and BKnight)
+    Biconditional(AKnight, Or(And(AKnight, BKnight), And(AKnave, BKnave))),
+    # BKnight iff (BKnight and AKnave)
+    Biconditional(BKnight, Or(And(BKnight, AKnave), And(BKnave, AKnight))))
 
 # Puzzle 3
 # A says either "I am a knight." or "I am a knave.", but you don't know which.
 # B says "A said 'I am a knave'."
 # B says "C is a knave."
 # C says "A is a knight."
-standard_specs = And(Or(AKnight, AKnave), Not(And(AKnight, AKnave)),
-                     Or(BKnight, BKnave), Not(And(BKnight, BKnave)),
-                     Or(CKnight, CKnave), Not(And(CKnight, CKnave)))
+standard_specs = And(Biconditional(AKnight, Not(AKnave)),
+                     Biconditional(BKnight, Not(BKnave)),
+                     Biconditional(CKnight, Not(CKnave)))
 knowledge3 = And(
     standard_specs,
-    # the claim 'I am a Knave' -> I lie -> I am a Knight -> I tell the truth (contradiction, wasn't said)
-    # from which we conclude A said 'I am a Knight', so A is an honest Knight or lying Knave
-    # Or(AKnight, AKnave) already captured in standard specs
-    # If A said 'I am a knight' (didn't say 'I am a knave') then B is a lying knave
-    Implication(Or(AKnight, AKnave), BKnave),
-    # Either C is a knave (and B is an honest knight) or B is a lying knave and C is a knight
-    Or(And(CKnave, BKnight), And(BKnave, CKnight)),
-    # Either C is an honest knight and AKnight or C is a lying knave and A is a knave
-    Or(And(AKnight, CKnight), And(CKnave, AKnave)))
+    # (AKnight iff AKnight) or (AKnight iff AKnave)
+    Or(Biconditional(AKnight, AKnight), Biconditional(AKnight, AKnave)),
+    # BKnight iff (AKnight iff AKnave)
+    Biconditional(BKnight, Biconditional(AKnight, AKnave)),
+    # BKnight iff CKnave
+    Biconditional(BKnight, CKnave),
+    # CKnight iff AKnight
+    Biconditional(CKnight, AKnight))
 
 
 def main():
