@@ -359,22 +359,19 @@ class MinesweeperAI():
                 return cell
         return None
 
-    def make_random_move(self, first_available: bool = False) -> tuple:
+    def make_random_move(self) -> tuple:
         """Returns a move to make on the Minesweeper board. Should choose 
         randomly among cells that:
             1) have not already been chosen, and
             2) are not known to be mines
 
-        first_available = True has a slightly higher (+~2%) win rate.
-
-        Args:
-            first_available (bool, optional): If True, upper-leftmost cell 
-            available, otherwise random among remaining options. Defaults to 
-            True.
-
         Returns:
             tuple: Row and column index
         """
+        # first_available (bool, optional): If True, upper-leftmost cell
+        # available, otherwise random among remaining options. Defaults to True.
+        # first_available = True has a slightly higher (+~2%) win rate.
+        first_available = False
         moves_remaining = []
         for i, j in itertools.product(range(self.height), range(self.width)):
             if ((i, j) not in self.moves_made) and ((i, j) not in self.mines):
