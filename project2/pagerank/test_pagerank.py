@@ -6,7 +6,7 @@ import pytest
 import networkx
 
 from pagerank import _sample_states, crawl, transition_model, sample_pagerank, iterate_pagerank
-from pagerank import DAMPING, SAMPLES, TOLERANCE, MAX_ITER
+from pagerank import DAMPING, SAMPLES
 
 
 @pytest.fixture(scope='module', params=['corpus0', 'corpus1', 'corpus2'])
@@ -47,7 +47,7 @@ def test_transition_sum(damping_factor, toy_corpus):
     # arbitrarily choose the first key from the corpus for testing
     page = list(toy_corpus.keys())[0]
     result = transition_model(toy_corpus, page, damping_factor)
-    sums_to_one = math.isclose(sum(result.values()), 1.0, rel_tol=1e-6)
+    sums_to_one = math.isclose(sum(result.values()), 1.0, abs_tol=1e-6)
     assert sums_to_one
 
 
@@ -60,7 +60,8 @@ def test_sample_states(toy_corpus):
 def test_sample_pagerank_sum(corpus):
     sample_dist = sample_pagerank(corpus, DAMPING, SAMPLES)
     # ensure the distribution sums to 1
-    assert sum(sample_dist.values()) == 1.0
+    sums_to_one = math.isclose(sum(sample_dist.values()), 1.0, abs_tol=1e-6)
+    assert sums_to_one
 
 
 def test_sample_pagerank_keys(toy_corpus):
@@ -72,24 +73,35 @@ def test_sample_pagerank_keys(toy_corpus):
 @pytest.fixture(scope='module')
 def expected_dist(corpus):
     g = networkx.DiGraph(corpus)
-    true_dist = networkx.pagerank(g, alpha=DAMPING)
+    true_dist = networkx.pagerank(g, alpha=DAMPING, tol=1e-6)
     return corpus, true_dist
 
 
 def test_sample_pagerank(expected_dist):
     corpus, true_dist = expected_dist
     # need A LOT of samples to converge, and still getting some chatter
-    sample_dist = sample_pagerank(corpus, DAMPING, 15000)
+    dist = sample_pagerank(corpus, DAMPING, 15000)
     close = []
-    for key in sample_dist:
-        close.append(
-            math.isclose(sample_dist[key], true_dist[key], rel_tol=1e-1))
+    for key in dist:
+        close.append(math.isclose(dist[key], true_dist[key], abs_tol=1e-1))
     assert all(close)
 
 
-# def test_iterate_pagerank(corpus):
-#     corpus = crawl(corpus)
-#     ranks = iterate_pagerank(corpus, DAMPING)
-#     print(f'PageRank Results from Iteration')
-#     for page in sorted(ranks):
-#         print(f'  {page}: {ranks[page]:.4f}')
+def test_iterate_pagerank(expected_dist):
+    corpus, true_dist = expected_dist
+    dist = iterate_pagerank(corpus, DAMPING)
+    close = []
+    for key in dist:
+        close.append(math.isclose(dist[key], true_dist[key], abs_tol=1e-2))
+    assert all(close)
+
+
+def test_implementations_close(corpus):
+    # test with default problem specs
+    sample_dist = sample_pagerank(corpus, DAMPING, SAMPLES)
+    iter_dist = iterate_pagerank(corpus, DAMPING)
+    close = []
+    for key in sample_dist:
+        close.append(
+            math.isclose(sample_dist[key], iter_dist[key], abs_tol=1e-1))
+    assert all(close)

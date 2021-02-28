@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, defaultdict
 import os
 import random
 import re
@@ -6,8 +6,6 @@ import sys
 
 DAMPING = 0.85
 SAMPLES = 10000
-TOLERANCE = 1e-6
-MAX_ITER = 100
 
 
 def crawl(directory: str) -> dict:
@@ -122,7 +120,58 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    uniform_prob = 1 / len(corpus)
+    pagerank_dist = {key: uniform_prob for key in corpus}
+    random_hop = (1 - damping_factor) / len(corpus)
+    inverted_corpus = defaultdict(set)
+    for key in corpus:
+        # if no neighbors, add all pages as neighbors
+        if not corpus[key]:
+            for neighbor in corpus:
+                inverted_corpus[neighbor].add(key)
+        # otherwise, just add neighbors
+        else:
+            for neighbor in corpus[key]:
+                inverted_corpus[neighbor].add(key)
+
+    # these should really be a global vars or passed arguments
+    MAX_ITER = 1000
+    TOLERANCE = 1e-3
+
+    # only iterate for a max of specified number of steps
+    for _ in range(MAX_ITER):
+        # monitor changes to the distribution between iterations
+        pagerank_new_dist = dict()
+
+        # update scores for each page
+        for page in pagerank_dist:
+            # if no inbound neighbors
+
+            # initialize with random hop
+            pagerank_new_dist[page] = random_hop
+
+            # get inbound neighbors and update score for each neighbor
+            neighbors_sum = 0
+            for neighbor in inverted_corpus[page]:
+                # out degree is number if pages if no out links
+                out_degree = len(
+                    corpus[neighbor]) if corpus[neighbor] else len(corpus)
+                # neighbor score / out_degree of neighbor
+                neighbors_sum += pagerank_dist[neighbor] / out_degree
+            pagerank_new_dist[page] += damping_factor * neighbors_sum
+
+        # check if changes are below the tolerance
+        close = []
+        for key in pagerank_dist:
+            diff = abs(pagerank_dist[key] - pagerank_new_dist[key])
+            close.append(diff < TOLERANCE)
+
+        if all(close):
+            return pagerank_new_dist
+        # o/w continue iterating
+        pagerank_dist = pagerank_new_dist
+    # raise error that model didn't converge
+    raise Exception('Iterative PageRank failed to converge.')
 
 
 def main():
