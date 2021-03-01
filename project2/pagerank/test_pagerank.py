@@ -1,11 +1,9 @@
 import math
-from re import S
-from networkx.algorithms.link_analysis.pagerank_alg import pagerank
 
 import pytest
 import networkx
 
-from pagerank import _sample_states, crawl, transition_model, sample_pagerank, iterate_pagerank
+from pagerank import sample_states, crawl, transition_model, sample_pagerank, iterate_pagerank
 from pagerank import DAMPING, SAMPLES
 
 
@@ -52,7 +50,7 @@ def test_transition_sum(damping_factor, toy_corpus):
 
 
 def test_sample_states(toy_corpus):
-    state_counts = _sample_states(toy_corpus, DAMPING, SAMPLES)
+    state_counts = sample_states(toy_corpus, DAMPING, SAMPLES)
     # ensure the correct number of samples made it into the counter dict
     assert sum(state_counts.values()) == SAMPLES
 

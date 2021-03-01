@@ -9,10 +9,15 @@ SAMPLES = 10000
 
 
 def crawl(directory: str) -> dict:
-    """
-    Parse a directory of HTML pages and check for links to other pages.
-    Return a dictionary where each key is a page, and values are
-    a list of all other pages in the corpus that are linked to by the page.
+    """Parse a directory of HTML pages and check for links to other pages. 
+    Return a dictionary where each key is a page, and values are a list of all 
+    other pages in the corpus that are linked to by the page.
+
+    Args:
+        directory (str): Directory to read HTML files from.
+
+    Returns:
+        dict: Corpus dictionary.
     """
     pages = dict()
 
@@ -34,13 +39,21 @@ def crawl(directory: str) -> dict:
 
 
 def transition_model(corpus: dict, page: str, damping_factor: float) -> dict:
-    """
-    Return a probability distribution over which page to visit next,
-    given a current page.
+    """Return a probability distribution over which page to visit next, given a 
+    current page.
 
-    With probability `damping_factor`, choose a link at random
-    linked to by `page`. With probability `1 - damping_factor`, choose
-    a link at random chosen from all pages in the corpus.
+    With probability `damping_factor`, choose a link at random linked to by 
+    `page`. With probability `1 - damping_factor`, choose a link at random 
+    chosen from all pages in the corpus.
+
+    Args:
+        corpus (dict): Dictionary mapping pages to links contained on the page.
+        page (str): Current page.
+        damping_factor (float): Probability of transitioning to one of the 
+            linked pages.
+
+    Returns:
+        dict: Probability distribution over the pages in the corpus.
     """
     uniform_prob = 1 / len(corpus)
 
@@ -53,16 +66,27 @@ def transition_model(corpus: dict, page: str, damping_factor: float) -> dict:
     dampened_uniform_prob = uniform_prob * (1 - damping_factor)
     transition_probs = {key: dampened_uniform_prob for key in corpus}
 
-    # neighbors are given additional damping_factor / len(neighbors) prob
-    out_degree = len(corpus[page])
-    additional_weight = damping_factor / out_degree
+    # neighbors are given additional (damping_factor / len(neighbors)) prob
+    additional_weight = damping_factor / len(corpus[page])
     for neighbor in corpus[page]:
         transition_probs[neighbor] += additional_weight
 
     return transition_probs
 
 
-def _sample_states(corpus: dict, damping_factor: float, n: int) -> Counter:
+def sample_states(corpus: dict, damping_factor: float, n: int) -> Counter:
+    """Helper function to sample states based on the transition probabilities. 
+    This function keeps track of how many time each state has been visited.
+
+    Args:
+        corpus (dict): Dictionary mapping pages to links contained on the page.
+        damping_factor (float): Probability of transitioning to one of the 
+            linked pages.
+        n (int): Number of samples to draw.
+
+    Returns:
+        Counter: Dictionary of counts per state visited.
+    """
     # keep track of state counts
     counter = Counter()
 
@@ -83,23 +107,31 @@ def _sample_states(corpus: dict, damping_factor: float, n: int) -> Counter:
 
 
 def sample_pagerank(corpus: dict, damping_factor: float, n: int) -> dict:
-    """
-    Return PageRank values for each page by sampling `n` pages
-    according to transition model, starting with a page at random.
+    """Return PageRank values for each page by sampling `n` pages according to 
+    transition model, starting with a page at random.
 
-    Return a dictionary where keys are page names, and values are
-    their estimated PageRank value (a value between 0 and 1). All
-    PageRank values should sum to 1.
+    Return a dictionary where keys are page names, and values are their 
+    estimated PageRank value (a value between 0 and 1). All PageRank values 
+    should sum to 1.
+
+    Args:
+        corpus (dict): Dictionary mapping pages to links contained on the page.
+        damping_factor (float): Probability of transitioning to one of the 
+            linked pages.
+        n (int): Number of samples to draw.
+
+    Returns:
+        dict: Probability distribution over the pages.
     """
     # sample n states
-    state_counts = _sample_states(corpus, damping_factor, n)
+    state_counts = sample_states(corpus, damping_factor, n)
 
     # warn if not all states were sampled
     missing_keys = set(corpus.keys()) - set(state_counts.keys())
     if missing_keys:
-        print(
-            'WARNING: Not all corpus states were sampled. Consider increasing '
-            'the number of sampled states \'n\'.')
+        # should this be an exception raised or at least a printed warning?
+        # 'WARNING: Not all corpus states were sampled. Consider increasing '
+        # 'the number of sampled states \'n\'.')
         for key in missing_keys:
             state_counts[key] = 0.0
 
@@ -111,18 +143,17 @@ def sample_pagerank(corpus: dict, damping_factor: float, n: int) -> dict:
     return pagerank_dist
 
 
-def iterate_pagerank(corpus, damping_factor):
-    """
-    Return PageRank values for each page by iteratively updating
-    PageRank values until convergence.
+def invert_corpus(corpus: dict) -> dict:
+    """Compute the inverse dictionary of the corpus, where keys are pages and 
+    values are sets of in-neighbor pages (as opposed to out-neighbors).
 
-    Return a dictionary where keys are page names, and values are
-    their estimated PageRank value (a value between 0 and 1). All
-    PageRank values should sum to 1.
+    Args:
+        corpus (dict): Dictionary mapping pages to links contained on the page.
+
+    Returns:
+        dict: Inverted corpus dictionary.
     """
-    uniform_prob = 1 / len(corpus)
-    pagerank_dist = {key: uniform_prob for key in corpus}
-    random_hop = (1 - damping_factor) / len(corpus)
+    # precompute the inverted corpus (in-neighbors as opposed to out-neighbors)
     inverted_corpus = defaultdict(set)
     for key in corpus:
         # if no neighbors, add all pages as neighbors
@@ -133,11 +164,41 @@ def iterate_pagerank(corpus, damping_factor):
         else:
             for neighbor in corpus[key]:
                 inverted_corpus[neighbor].add(key)
+    return inverted_corpus
+
+
+def iterate_pagerank(corpus: dict, damping_factor: float) -> dict:
+    """Return PageRank values for each page by iteratively updating PageRank 
+    values until convergence.
+
+    Return a dictionary where keys are page names, and values are their 
+    estimated PageRank value (a value between 0 and 1). All PageRank values 
+    should sum to 1.
+
+    Args:
+        corpus (dict): Dictionary mapping pages to links contained on the page.
+        damping_factor (float): Probability of transitioning to one of the 
+            linked pages.
+    
+    Raises:
+        Exception: Raise exception if PageRank does not converge in 1000 steps.
+
+    Returns:
+        dict: Probability distribution over the pages.
+    """
+    # initialize distribution to be uniform
+    uniform_prob = 1 / len(corpus)
+    pagerank_dist = {key: uniform_prob for key in corpus}
+
+    # precompute the inverted corpus (in-neighbors as opposed to out-neighbors)
+    inverted_corpus = invert_corpus(corpus)
 
     # these should really be a global vars or passed arguments
     MAX_ITER = 1000
     TOLERANCE = 1e-3
 
+    # precompute random hop probability
+    random_hop = (1 - damping_factor) / len(corpus)
     # only iterate for a max of specified number of steps
     for _ in range(MAX_ITER):
         # monitor changes to the distribution between iterations
@@ -145,8 +206,6 @@ def iterate_pagerank(corpus, damping_factor):
 
         # update scores for each page
         for page in pagerank_dist:
-            # if no inbound neighbors
-
             # initialize with random hop
             pagerank_new_dist[page] = random_hop
 
@@ -167,11 +226,16 @@ def iterate_pagerank(corpus, damping_factor):
             close.append(diff < TOLERANCE)
 
         if all(close):
-            return pagerank_new_dist
+            # return sorted distribution
+            return {
+                key: val
+                for key, val in sorted(pagerank_new_dist.items(),
+                                       key=lambda x: x[1])
+            }
         # o/w continue iterating
         pagerank_dist = pagerank_new_dist
     # raise error that model didn't converge
-    raise Exception('Iterative PageRank failed to converge.')
+    raise Exception(f'Iterative PageRank failed to converge in {MAX_ITER}.')
 
 
 def main():
