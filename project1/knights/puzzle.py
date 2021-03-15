@@ -15,7 +15,7 @@ standard_specs = Biconditional(AKnight, Not(AKnave))
 knowledge0 = And(
     standard_specs,
     # AKnave iff (AKnave and AKnight)
-    Biconditional(AKnave, And(AKnight, AKnave)))
+    Biconditional(AKnight, And(AKnight, AKnave)))
 
 # Puzzle 1
 # A says "We are both knaves."
