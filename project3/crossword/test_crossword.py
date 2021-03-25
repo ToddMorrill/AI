@@ -137,3 +137,33 @@ def test_inconsistent_conflict(small_crossword):
         Variable(0, 1, 'across', 3): 'TWO',
     }
     assert not creator.consistent(assignment)
+
+
+def test_order_domain_values(small_crossword):
+    creator = CrosswordCreator(small_crossword)
+    creator.enforce_node_consistency()
+    var = Variable(0, 1, 'across', 3)
+    # partial assignment
+    assignment = {Variable(4, 1, 'across', 4): 'NINE'}
+    ordered_vals = creator.order_domain_values(var, assignment)
+    # 'ONE' should have the most conflicts
+    assert ordered_vals[-1] == 'ONE'
+
+def test_order_domain_values_assignment(small_crossword):
+    creator = CrosswordCreator(small_crossword)
+    creator.enforce_node_consistency()
+    var = Variable(0, 1, 'across', 3)
+    # partial assignment
+    assignment = {Variable(0, 1, 'down', 5): 'SEVEN'}
+    ordered_vals = creator.order_domain_values(var, assignment)
+    # all orderings equally likely - how to test?
+    # assert ordered_vals == ['ONE', 'SIX', 'TEN', 'TWO']
+
+def test_select_unassigned_variable(small_crossword):
+    creator = CrosswordCreator(small_crossword)
+    creator.enforce_node_consistency()
+    # partial assignment
+    assignment = {Variable(0, 1, 'down', 5): 'SEVEN'}
+    next_var = creator.select_unassigned_variable(assignment)
+    # manual inspection shows this should be the next var
+    assert next_var == Variable(4, 1, 'across', 4)

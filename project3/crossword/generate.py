@@ -171,7 +171,7 @@ class CrosswordCreator():
             # check if var in assignment
             if var not in assignment:
                 return False
-            
+
             # if the val is not a string or if it's an empty string, incomplete
             if not isinstance(assignment[var], str) or (len(assignment[var])
                                                         == 0):
@@ -187,12 +187,12 @@ class CrosswordCreator():
         # all values are distinct
         if len(set(assignment.values())) != len(assignment):
             return False
-        
+
         # every value is the correct length
         for var in assignment:
             if var.length != len(assignment[var]):
                 return False
-        
+
         # no conflicts between neighboring variables
         for x_var, y_var in itertools.combinations(assignment.keys(), 2):
             overlap = self.crossword.overlaps[x_var, y_var]
@@ -200,8 +200,18 @@ class CrosswordCreator():
                 i, j = overlap
                 if assignment[x_var][i] != assignment[y_var][j]:
                     return False
-        
+
         return True
+
+    def _get_neighbors(self, var):
+        neighbors = []
+        for neighbor in self.domains:
+            if var == neighbor:
+                continue
+            overlap = self.crossword.overlaps[var, neighbor]
+            if overlap:
+                neighbors.append((neighbor, overlap))
+        return neighbors
 
     def order_domain_values(self, var, assignment):
         """
@@ -210,7 +220,27 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        raise NotImplementedError
+        # compute neighbors
+        neighbors = self._get_neighbors(var)
+
+        domain_scores = []
+        for var_word in self.domains[var]:
+            conflicts = 0
+            for neighbor in neighbors:
+                neighbor_var, overlap = neighbor
+                # don't count neighbors that have assignments
+                if neighbor_var in assignment:
+                    continue
+                i, j = overlap
+                # loop through domain of neighbor_var and count how many conflicts occur
+                for neighbor_word in self.domains[neighbor_var]:
+                    if var_word[i] != neighbor_word[j]:
+                        conflicts += 1
+            domain_scores.append((var_word, conflicts))
+
+        domain_scores.sort(key=lambda x: x[1])
+        words, scores = zip(*domain_scores)
+        return list(words)
 
     def select_unassigned_variable(self, assignment):
         """
@@ -220,7 +250,20 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+        unassigned_vars = []
+        for var in self.domains:
+            if var not in assignment:
+                unassigned_vars.append(var)
+
+        var_scores = []
+        for var in unassigned_vars:
+            num_remaining_vals = len(self.domains[var])
+            num_neighbors = len(self._get_neighbors(var))
+            var_scores.append((var, num_remaining_vals, num_neighbors))
+
+        var_scores.sort(key=lambda x: (x[1], -x[2]))
+        vars, remaining_vals, degrees = zip(*var_scores)
+        return vars[0]
 
     def backtrack(self, assignment):
         """
@@ -231,7 +274,35 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        if self.assignment_complete(assignment):
+            return assignment
+
+        var = self.select_unassigned_variable(assignment)
+        for word in self.order_domain_values(var, assignment):
+            assignment_attempt = assignment.copy()
+            assignment_attempt[var] = word
+            if self.consistent(assignment_attempt):
+                # maintain arc consistency for arcs impacted
+                neighbors, intersections = zip(*self._get_neighbors(var))
+                arcs_impacted = []
+                for neighbor in neighbors:
+                    if neighbor not in assignment_attempt:
+                        arcs_impacted.append((neighbor, var))
+                
+                # wouldn't you need to make a copy of self and update the domain
+                # of var for ac3 to do anything?
+
+                # run ac3 to maintain arc consistency
+                if self.ac3(arcs_impacted):
+                    # check if any domains are singletons that can be added to assignment
+                    for x, y in arcs_impacted:
+                        if len(self.domains[x]) == 1:
+                            # get the one and only element from the domain set
+                            assignment_attempt[x] = next(iter(self.domains[x]))
+                    result = self.backtrack(assignment_attempt)
+                    if result:
+                        return result
+        return None
 
 
 def main():
