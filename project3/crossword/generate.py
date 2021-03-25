@@ -1,3 +1,4 @@
+import copy
 import itertools
 import sys
 
@@ -288,17 +289,22 @@ class CrosswordCreator():
                 for neighbor in neighbors:
                     if neighbor not in assignment_attempt:
                         arcs_impacted.append((neighbor, var))
-                
-                # wouldn't you need to make a copy of self and update the domain
-                # of var for ac3 to do anything?
+
+                # need to make a copy of self and update the domain according
+                # to the assignment to var in order for ac3 to work
+                # need to make a copy so we don't commit to this assignment
+                self_copy = copy.deepcopy(self)
+                self_copy.domains[var] = {word}
 
                 # run ac3 to maintain arc consistency
-                if self.ac3(arcs_impacted):
-                    # check if any domains are singletons that can be added to assignment
+                if self_copy.ac3(arcs_impacted):
+                    # check if any domains are singletons that can be added to
+                    # assignment
                     for x, y in arcs_impacted:
-                        if len(self.domains[x]) == 1:
+                        if len(self_copy.domains[x]) == 1:
                             # get the one and only element from the domain set
-                            assignment_attempt[x] = next(iter(self.domains[x]))
+                            assignment_attempt[x] = next(
+                                iter(self_copy.domains[x]))
                     result = self.backtrack(assignment_attempt)
                     if result:
                         return result
@@ -306,7 +312,6 @@ class CrosswordCreator():
 
 
 def main():
-
     # Check usage
     if len(sys.argv) not in [3, 4]:
         sys.exit("Usage: python generate.py structure words [output]")
