@@ -305,7 +305,7 @@ class CrosswordCreator():
                             # get the one and only element from the domain set
                             assignment_attempt[x] = next(
                                 iter(self_copy.domains[x]))
-                    result = self.backtrack(assignment_attempt)
+                    result = self_copy.backtrack(assignment_attempt)
                     if result:
                         return result
         return None
