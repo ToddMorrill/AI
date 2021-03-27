@@ -11,8 +11,6 @@ def small_crossword(request):
     structure = 'data/structure0.txt'
     words = 'data/words0.txt'
     test_dir = 'test_results'
-    # os.makedirs(test_dir, exist_ok=True)
-    # output = os.path.join(test_dir, 'output0.png')
     # Generate crossword
     crossword = Crossword(structure, words)
     return crossword
@@ -149,6 +147,7 @@ def test_order_domain_values(small_crossword):
     # 'ONE' should have the most conflicts
     assert ordered_vals[-1] == 'ONE'
 
+
 def test_order_domain_values_assignment(small_crossword):
     creator = CrosswordCreator(small_crossword)
     creator.enforce_node_consistency()
@@ -159,6 +158,7 @@ def test_order_domain_values_assignment(small_crossword):
     # all orderings equally likely - how to test?
     # assert ordered_vals == ['ONE', 'SIX', 'TEN', 'TWO']
 
+
 def test_select_unassigned_variable(small_crossword):
     creator = CrosswordCreator(small_crossword)
     creator.enforce_node_consistency()
@@ -167,3 +167,25 @@ def test_select_unassigned_variable(small_crossword):
     next_var = creator.select_unassigned_variable(assignment)
     # manual inspection shows this should be the next var
     assert next_var == Variable(4, 1, 'across', 4)
+
+
+def test_solve(small_crossword):
+    creator = CrosswordCreator(small_crossword)
+    assignment = creator.solve()
+    expected = assignment = {
+        Variable(0, 1, 'down', 5): 'SEVEN',
+        Variable(0, 1, 'across', 3): 'SIX',
+        Variable(4, 1, 'across', 4): 'NINE',
+        Variable(1, 4, 'down', 4): 'FIVE'
+    }
+    assert assignment == expected
+
+
+def test_backtrack_cant_solve(small_crossword):
+    creator = CrosswordCreator(small_crossword)
+    creator.enforce_node_consistency()
+    creator.ac3()
+    # manually intervene so it can't be solved (remove 'FIVE')
+    creator.domains[Variable(1, 4, 'down', 4)] = {'NINE'}
+    result = creator.backtrack(dict())
+    assert result is None

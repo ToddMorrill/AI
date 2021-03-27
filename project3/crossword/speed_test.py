@@ -19,10 +19,11 @@ def run_solve():
         start = time.time()
         creator.solve()
         end = time.time()
-        duration = end-start
+        duration = end - start
         times.append(duration)
-    
+
     # average run times
     print(sum(times) / len(times))
+
 
 run_solve()
