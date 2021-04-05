@@ -1,7 +1,8 @@
 """
 Reviewing problem specification, code, and reading about class methods: 30 minutes
-
 V1 implementation: 25 mins
+Step through code to improve understanding: 40 mins
+Tests: 40 minutes
 """
 import math
 import random
@@ -141,12 +142,24 @@ class NimAI():
         `state`, return 0.
         """
         available_actions = Nim.available_actions(state)
-        best_q_val = 0
+        # no actions available
+        if len(available_actions) == 0:
+            return 0
+        
+        # otherwise, possible that all actions are negative, so can't just 
+        # default to 0
+        best_q_val = -float('inf')
         for action in available_actions:
             key = (tuple(state), action)
             if key in self.q:
-                if self.q[key] > best_q_val:
-                    best_q_val = self.q[key]
+                cur_q_val = self.q[key]
+            else:
+                cur_q_val = 0
+            
+            # potentially update best_q_val           
+            if cur_q_val > best_q_val:
+                best_q_val = cur_q_val
+            
         return best_q_val
 
     def choose_action(self, state, epsilon=True):
@@ -186,7 +199,6 @@ def train(n):
     """
     Train an AI by playing `n` games against itself.
     """
-
     player = NimAI()
 
     # Play n games
@@ -234,6 +246,7 @@ def train(n):
                               last[game.player]["action"], new_state, 0)
 
     print("Done training")
+    breakpoint()
 
     # Return the trained AI
     return player
