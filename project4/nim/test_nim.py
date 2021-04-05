@@ -1,6 +1,4 @@
-import pytest
-
-from nim import NimAI, Nim
+from nim import NimAI
 
 
 def test_get_q_value_in_dict():
@@ -102,6 +100,7 @@ def test_choose_action_explore():
     # what's the right way to test randomness?
     action = player.choose_action(state, epsilon=True)
     assert action in {(1, 1), (2, 1), (2, 2)}
+
 
 def test_choose_action_exploit():
     player = NimAI()
