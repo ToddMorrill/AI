@@ -2,7 +2,7 @@
 
 Time spent:
 Reading the problem specification: 20
-Implementation: 25 + 3:44
+Implementation: 25 + 75
 
 Examples:
     $ python3 traffic.py gtsrb
@@ -18,12 +18,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-EPOCHS = 10
+EPOCHS = 15
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
 TEST_SIZE = 0.4
-DROPOUT = 0.2
+DROPOUT = 0.5
 
 
 def load_data(data_dir):
@@ -68,6 +68,8 @@ def get_model():
     """
     # input size is (IMG_WIDTH, IMG_HEIGHT, 3)
     inputs = keras.Input((IMG_WIDTH, IMG_HEIGHT, 3))
+
+    # block 1
     x = layers.Conv2D(filters=32,
                       kernel_size=(3, 3),
                       padding='valid',
@@ -80,8 +82,40 @@ def get_model():
                       use_bias=True)(x)
     block_1_output = layers.MaxPool2D(pool_size=(3, 3))(x)
 
-    # flatten, dropout, predict
-    x = layers.Flatten()(block_1_output)
+    # block 2
+    x = layers.Conv2D(filters=64,
+                      kernel_size=(3, 3),
+                      padding='same',
+                      activation='relu',
+                      use_bias=True)(block_1_output)
+    x = layers.Conv2D(filters=64,
+                      kernel_size=(3, 3),
+                      padding='same',
+                      activation='relu',
+                      use_bias=True)(x)
+    block_2_output = layers.Add()([x, block_1_output])
+
+    # block 3
+    x = layers.Conv2D(filters=64,
+                      kernel_size=(3, 3),
+                      padding='same',
+                      activation='relu',
+                      use_bias=True)(block_2_output)
+    x = layers.Conv2D(filters=64,
+                      kernel_size=(3, 3),
+                      padding='same',
+                      activation='relu',
+                      use_bias=True)(x)
+    block_3_output = layers.Add()([x, block_2_output])
+
+    # extra convolutional layer, ResNet style finish
+    x = layers.Conv2D(filters=64,
+                      kernel_size=(3, 3),
+                      padding='valid',
+                      activation='relu',
+                      use_bias=True)(block_3_output)
+    x = layers.GlobalAveragePooling2D()(x)
+    x = layers.Dense(256, activation='relu')(x)
     x = layers.Dropout(rate=DROPOUT)(x)
     outputs = layers.Dense(NUM_CATEGORIES)(x)
 
