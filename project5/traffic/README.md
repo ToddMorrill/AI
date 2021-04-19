@@ -94,8 +94,8 @@ If I continued to develop this system, I would define a validation set (e.g. 10-
 - dropout: 0.5
 - fully connected -> num_classes
 
-**Experiment 7:** same as experiment 6, but train for 12 epochs (really should be using a validation set for stopping criteria) (accuracy: 0.9807)
+**Experiment 7:** same as experiment 6, but train for 12 epochs (really should be using a validation set for stopping criterion) (accuracy: 0.9807)
 
-**Experiment 8:** same as experiment 6, but train for 15 epochs (really should be using a validation set for stopping criteria) (accuracy: 0.9898)
+**Experiment 8:** same as experiment 6, but train for 15 epochs (really should be using a validation set for stopping criterion) (accuracy: 0.9898)
 
-**Experiment 9:** same as experiment 6, but train for 20 epochs (really should be using a validation set for stopping criteria) (accuracy: 0.9936)
+**Experiment 9:** same as experiment 6, but train for 20 epochs (really should be using a validation set for stopping criterion) (accuracy: 0.9936)

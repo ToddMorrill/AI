@@ -2,7 +2,7 @@
 
 Time spent:
 Reading the problem specification: 20 minutes
-Implementation: 100 minutes
+Implementation & experimentation: 100 minutes
 Write-up: 25 minutes
 Documentation & formatting: 5 minutes
 Total: 150 minutes
@@ -15,7 +15,6 @@ import sys
 
 import cv2
 import numpy as np
-from numpy.core.shape_base import block
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow import keras
@@ -108,25 +107,12 @@ def get_model() -> keras.Model:
                       use_bias=True)(x)
     block_2_output = layers.Add()([x, block_1_output])
 
-    # block 3
-    x = layers.Conv2D(filters=64,
-                      kernel_size=(3, 3),
-                      padding='same',
-                      activation='relu',
-                      use_bias=True)(block_2_output)
-    x = layers.Conv2D(filters=64,
-                      kernel_size=(3, 3),
-                      padding='same',
-                      activation='relu',
-                      use_bias=True)(x)
-    block_3_output = layers.Add()([x, block_2_output])
-
     # extra convolutional layer, ResNet style finish
     x = layers.Conv2D(filters=64,
                       kernel_size=(3, 3),
                       padding='valid',
                       activation='relu',
-                      use_bias=True)(block_3_output)
+                      use_bias=True)(block_2_output)
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(256, activation='relu')(x)
     x = layers.Dropout(rate=DROPOUT)(x)
