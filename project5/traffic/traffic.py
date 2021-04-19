@@ -1,8 +1,11 @@
 """This module implements a deep learning model to classify road signs.
 
 Time spent:
-Reading the problem specification: 20
-Implementation: 25 + 75
+Reading the problem specification: 20 minutes
+Implementation: 100 minutes
+Write-up: 25 minutes
+Documentation & formatting: 5 minutes
+Total: 150 minutes
 
 Examples:
     $ python3 traffic.py gtsrb
@@ -18,27 +21,31 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-EPOCHS = 15
+EPOCHS = 10
 IMG_WIDTH = 30
 IMG_HEIGHT = 30
 NUM_CATEGORIES = 43
 TEST_SIZE = 0.4
-DROPOUT = 0.5
 
 
-def load_data(data_dir):
-    """
-    Load image data from directory `data_dir`.
+def load_data(data_dir: str) -> tuple:
+    """Load image data from directory `data_dir`.
 
-    Assume `data_dir` has one directory named after each category, numbered
-    0 through NUM_CATEGORIES - 1. Inside each category directory will be some
-    number of image files.
+    Assume `data_dir` has one directory named after each category, numbered 0
+     through NUM_CATEGORIES - 1. Inside each category directory will be some
+     number of image files.
 
-    Return tuple `(images, labels)`. `images` should be a list of all
-    of the images in the data directory, where each image is formatted as a
-    numpy ndarray with dimensions IMG_WIDTH x IMG_HEIGHT x 3. `labels` should
-    be a list of integer labels, representing the categories for each of the
-    corresponding `images`.
+    Return tuple `(images, labels)`. `images` should be a list of all of the
+     images in the data directory, where each image is formatted as a numpy
+     ndarray with dimensions IMG_WIDTH x IMG_HEIGHT x 3. `labels` should be a
+     list of integer labels, representing the categories for each of the
+     corresponding `images`.
+
+    Args:
+        data_dir (str): Directory containing image data.
+
+    Returns:
+        tuple: (images, labels).
     """
     # cv2 to load images as np.arrays
     # loop over folders, then over files
@@ -60,12 +67,18 @@ def load_data(data_dir):
     return images, labels
 
 
-def get_model():
+def get_model() -> keras.Model:
+    """Returns a compiled convolutional neural network model. Assume that the
+    `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`. The
+     output layer should have `NUM_CATEGORIES` units, one for each category.
+
+    Returns:
+        keras.Model: Compiled Keras model.
     """
-    Returns a compiled convolutional neural network model. Assume that the
-    `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
-    The output layer should have `NUM_CATEGORIES` units, one for each category.
-    """
+    # should be a global param but not sure if grading server is importing
+    # functions + executing or executing complete modules
+    DROPOUT = 0.5
+
     # input size is (IMG_WIDTH, IMG_HEIGHT, 3)
     inputs = keras.Input((IMG_WIDTH, IMG_HEIGHT, 3))
 
