@@ -14,16 +14,71 @@ def test_preprocess_one(sentence, expected):
     assert words == expected
 
 
+def test_valid_1():
+    s = 'Holmes sat in the armchair.'
+    words = preprocess(s)
+    trees = parser.parse(words)
+    result = next(trees)
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['sat']), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('N', ['armchair'])])])])])])
+    assert result == expected
+
+
+def test_valid_2():
+    s = 'Holmes sat in the red armchair.'
+    words = preprocess(s)
+    trees = parser.parse(words)
+    result = next(trees)
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['sat']), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['red'])]), Tree('Nbar', [Tree('N', ['armchair'])])])])])])])
+    assert result == expected
+
+def test_valid_3():
+    s = 'Holmes sat in the little red armchair.'
+    words = preprocess(s)
+    trees = parser.parse(words)
+    result = next(trees)
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['sat']), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['little']), Tree('AP', [Tree('Adj', ['red'])])]), Tree('Nbar', [Tree('N', ['armchair'])])])])])])])
+    assert result == expected
+
+def test_parser_invalid_1():
+    # test invalid sentence
+    s = 'The the red door sat.'
+    words = preprocess(s)
+    trees = parser.parse(words)
+    try:
+        # shouldn't be able to parse
+        next(trees)
+    except StopIteration:
+        assert True
+
+def test_parser_invalid_2():
+    # test invalid sentence
+    s = 'Armchair on the sat Holmes.'
+    words = preprocess(s)
+    trees = parser.parse(words)
+    try:
+        # shouldn't be able to parse
+        next(trees)
+    except StopIteration:
+        assert True
+
+def test_parser_invalid_3():
+    # test invalid sentence
+    s = 'Holmes sat in the the armchair.'
+    words = preprocess(s)
+    trees = parser.parse(words)
+    try:
+        # shouldn't be able to parse
+        next(trees)
+    except StopIteration:
+        assert True
+
 def test_parser_1():
     with open('sentences/1.txt') as f:
         s = f.read()
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('N', ['holmes'])]),
-        Tree('VP', [Tree('V', ['sat'])])
-    ])
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['sat'])])])
     assert result == expected
 
 
@@ -33,14 +88,7 @@ def test_parser_2():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('N', ['holmes'])]),
-        Tree('VP', [
-            Tree('V', ['lit']),
-            Tree('NP',
-                 [Tree('Det', ['a']), Tree('N', ['pipe'])])
-        ])
-    ])
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['lit']), Tree('NP', [Tree('Det', ['a']), Tree('Nbar', [Tree('N', ['pipe'])])])])])
     assert result == expected
 
 
@@ -50,20 +98,9 @@ def test_parser_3():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('N', ['we'])]),
-        Tree('VP', [
-            Tree('V', ['arrived']),
-            Tree('NP', [
-                Tree('Det', ['the']),
-                Tree('N', ['day']),
-                Tree('PP', [
-                    Tree('P', ['before']),
-                    Tree('NP', [Tree('N', ['thursday'])])
-                ])
-            ])
-        ])
-    ])
+    # breakpoint()
+    # result.pretty_print()
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['we'])])]), Tree('VP', [Tree('V', ['arrived']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('Nbar', [Tree('N', ['day'])]), Tree('PP', [Tree('P', ['before']), Tree('NP', [Tree('Nbar', [Tree('N', ['thursday'])])])])])])])])
     assert result == expected
 
 
@@ -73,29 +110,7 @@ def test_parser_4():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('S', [
-            Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]),
-            Tree('VP', [
-                Tree('V', ['sat']),
-                Tree('PP', [
-                    Tree('P', ['in']),
-                    Tree('NP', [
-                        Tree('Det', ['the']),
-                        Tree('Nbar', [
-                            Tree('AP', [Tree('Adj', ['red'])]),
-                            Tree('Nbar', [Tree('N', ['armchair'])])
-                        ])
-                    ])
-                ])
-            ])
-        ]),
-        Tree('Conj', ['and']),
-        Tree('S', [
-            Tree('NP', [Tree('Nbar', [Tree('N', ['he'])])]),
-            Tree('VP', [Tree('V', ['chuckled'])])
-        ])
-    ])
+    expected = Tree('S', [Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['sat']), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['red'])]), Tree('Nbar', [Tree('N', ['armchair'])])])])])])]), Tree('Conj', ['and']), Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['he'])])]), Tree('VP', [Tree('V', ['chuckled'])])])])
     assert result == expected
 
 
@@ -105,21 +120,7 @@ def test_parser_5():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP',
-             [Tree('Det', ['my']),
-              Tree('Nbar', [Tree('N', ['companion'])])]),
-        Tree('VP', [
-            Tree('V', ['smiled']),
-            Tree('NP', [
-                Tree('Det', ['an']),
-                Tree('Nbar', [
-                    Tree('AP', [Tree('Adj', ['enigmatical'])]),
-                    Tree('Nbar', [Tree('N', ['smile'])])
-                ])
-            ])
-        ])
-    ])
+    expected = Tree('S', [Tree('NP', [Tree('Det', ['my']), Tree('Nbar', [Tree('N', ['companion'])])]), Tree('VP', [Tree('V', ['smiled']), Tree('NP', [Tree('Det', ['an']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['enigmatical'])]), Tree('Nbar', [Tree('N', ['smile'])])])])])])
     assert result == expected
 
 
@@ -129,16 +130,7 @@ def test_parser_6():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]),
-        Tree('VP', [
-            Tree('V', ['chuckled']),
-            Tree('PP', [
-                Tree('P', ['to']),
-                Tree('NP', [Tree('Nbar', [Tree('N', ['himself'])])])
-            ])
-        ])
-    ])
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('V', ['chuckled']), Tree('PP', [Tree('P', ['to']), Tree('NP', [Tree('Nbar', [Tree('N', ['himself'])])])])])])
     assert result == expected
 
 
@@ -148,38 +140,7 @@ def test_parser_7():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('S', [
-            Tree('NP', [Tree('Nbar', [Tree('N', ['she'])])]),
-            Tree('VP', [
-                Tree('AdvP', [Tree('Adv', ['never'])]),
-                Tree('VP', [
-                    Tree('V', ['said']),
-                    Tree('NP', [
-                        Tree('Det', ['a']),
-                        Tree('Nbar', [Tree('N', ['word'])])
-                    ])
-                ])
-            ])
-        ]),
-        Tree('Conj', ['until']),
-        Tree('S', [
-            Tree('NP', [Tree('Nbar', [Tree('N', ['we'])])]),
-            Tree('VP', [
-                Tree('VP', [
-                    Tree('V', ['were']),
-                    Tree('PP', [
-                        Tree('P', ['at']),
-                        Tree('NP', [
-                            Tree('Det', ['the']),
-                            Tree('Nbar', [Tree('N', ['door'])])
-                        ])
-                    ])
-                ]),
-                Tree('AdvP', [Tree('Adv', ['here'])])
-            ])
-        ])
-    ])
+    expected = Tree('S', [Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['she'])])]), Tree('VP', [Tree('AdvP', [Tree('Adv', ['never'])]), Tree('VP', [Tree('V', ['said']), Tree('NP', [Tree('Det', ['a']), Tree('Nbar', [Tree('N', ['word'])])])])])]), Tree('Conj', ['until']), Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['we'])])]), Tree('VP', [Tree('VP', [Tree('V', ['were']), Tree('PP', [Tree('P', ['at']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('N', ['door'])])])])]), Tree('AdvP', [Tree('Adv', ['here'])])])])])
     assert result == expected
 
 
@@ -190,25 +151,7 @@ def test_parser_8():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]),
-        Tree('VP', [
-            Tree('VP', [Tree('V', ['sat'])]),
-            Tree('AdvP', [
-                Tree('AdvP', [
-                    Tree('AdvP', [Tree('Adv', ['down'])]),
-                    Tree('Conj', ['and'])
-                ]),
-                Tree('VP', [
-                    Tree('V', ['lit']),
-                    Tree('NP', [
-                        Tree('Det', ['his']),
-                        Tree('Nbar', [Tree('N', ['pipe'])])
-                    ])
-                ])
-            ])
-        ])
-    ])
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['holmes'])])]), Tree('VP', [Tree('VP', [Tree('VP', [Tree('V', ['sat'])]), Tree('AdvP', [Tree('Adv', ['down'])])]), Tree('Conj', ['and']), Tree('VP', [Tree('V', ['lit']), Tree('NP', [Tree('Det', ['his']), Tree('Nbar', [Tree('N', ['pipe'])])])])])])
     assert result == expected
 
 
@@ -219,47 +162,7 @@ def test_parser_9():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('Nbar', [Tree('N', ['i'])])]),
-        Tree('VP', [
-            Tree('VP', [
-                Tree('V', ['had']),
-                Tree('NP', [
-                    Tree('Det', ['a']),
-                    Tree('Nbar', [
-                        Tree('Nbar', [
-                            Tree('AP', [Tree('Adj', ['country'])]),
-                            Tree('Nbar', [Tree('N', ['walk'])])
-                        ]),
-                        Tree('PP', [
-                            Tree('P', ['on']),
-                            Tree('NP',
-                                 [Tree('Nbar', [Tree('N', ['thursday'])])])
-                        ])
-                    ])
-                ])
-            ]),
-            Tree('Conj', ['and']),
-            Tree('VP', [
-                Tree('V', ['came']),
-                Tree('NP', [
-                    Tree('Nbar', [
-                        Tree('Nbar', [Tree('N', ['home'])]),
-                        Tree('PP', [
-                            Tree('P', ['in']),
-                            Tree('NP', [
-                                Tree('Det', ['a']),
-                                Tree('Nbar', [
-                                    Tree('AP', [Tree('Adj', ['dreadful'])]),
-                                    Tree('Nbar', [Tree('N', ['mess'])])
-                                ])
-                            ])
-                        ])
-                    ])
-                ])
-            ])
-        ])
-    ])
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['i'])])]), Tree('VP', [Tree('VP', [Tree('V', ['had']), Tree('NP', [Tree('Det', ['a']), Tree('Nbar', [Tree('Nbar', [Tree('AP', [Tree('Adj', ['country'])]), Tree('Nbar', [Tree('N', ['walk'])])]), Tree('PP', [Tree('P', ['on']), Tree('NP', [Tree('Nbar', [Tree('N', ['thursday'])])])])])])]), Tree('Conj', ['and']), Tree('VP', [Tree('V', ['came']), Tree('NP', [Tree('Nbar', [Tree('Nbar', [Tree('N', ['home'])]), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['a']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['dreadful'])]), Tree('Nbar', [Tree('N', ['mess'])])])])])])])])])])
     assert result == expected
 
 
@@ -269,53 +172,7 @@ def test_parser_10():
     words = preprocess(s)
     trees = parser.parse(words)
     result = next(trees)
-    expected = Tree('S', [
-        Tree('NP', [Tree('Nbar', [Tree('N', ['i'])])]),
-        Tree('VP', [
-            Tree('V', ['had']),
-            Tree('NP', [
-                Tree('Det', ['a']),
-                Tree('Nbar', [
-                    Tree('AP', [
-                        Tree('Adj', ['little']),
-                        Tree('AP', [
-                            Tree('Adj', ['moist']),
-                            Tree('AP', [Tree('Adj', ['red'])])
-                        ])
-                    ]),
-                    Tree('Nbar', [
-                        Tree('Nbar', [
-                            Tree('Nbar', [Tree('N', ['paint'])]),
-                            Tree('PP', [
-                                Tree('P', ['in']),
-                                Tree('NP', [
-                                    Tree('Det', ['the']),
-                                    Tree('Nbar', [Tree('N', ['palm'])])
-                                ])
-                            ])
-                        ]),
-                        Tree('PP', [
-                            Tree('P', ['of']),
-                            Tree('NP', [
-                                Tree('Det', ['my']),
-                                Tree('Nbar', [Tree('N', ['hand'])])
-                            ])
-                        ])
-                    ])
-                ])
-            ])
-        ])
-    ])
+    # breakpoint()
+    # result.pretty_print()
+    expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['i'])])]), Tree('VP', [Tree('V', ['had']), Tree('NP', [Tree('Det', ['a']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['little']), Tree('AP', [Tree('Adj', ['moist']), Tree('AP', [Tree('Adj', ['red'])])])]), Tree('Nbar', [Tree('Nbar', [Tree('Nbar', [Tree('N', ['paint'])]), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('N', ['palm'])])])])]), Tree('PP', [Tree('P', ['of']), Tree('NP', [Tree('Det', ['my']), Tree('Nbar', [Tree('N', ['hand'])])])])])])])])])
     assert result == expected
-
-
-def test_parser_invalid():
-    # test invalid sentence
-    s = "The the red door sat."
-    words = preprocess(s)
-    trees = parser.parse(words)
-    try:
-        # shouldn't be able to parse
-        next(trees)
-    except StopIteration:
-        assert True

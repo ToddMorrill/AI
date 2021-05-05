@@ -23,13 +23,14 @@ V -> "arrived" | "came" | "chuckled" | "had" | "lit" | "said" | "sat"
 V -> "smiled" | "tell" | "were"
 """
 
+# consider using VP PP to account for multiple prepositional phrases (e.g. from x to y)
 NONTERMINALS = """
 S -> NP VP | S Conj S
 VP -> V | V NP | V PP | AdvP VP | VP AdvP | VP Conj VP
 PP -> P NP
-NP -> Nbar | Det Nbar
+NP -> Nbar | Det Nbar | Nbar Conj Nbar
 AP -> Adj | Adj AP
-AdvP -> Adv
+AdvP -> Adv | Adv AdvP
 Nbar -> N | AP Nbar | Nbar PP
 """
 
