@@ -4,9 +4,10 @@ Examples:
     $ python3 parser.py
 
 Timing:
-Reading problem spec: 2:30 -
+30 + 20 + 20
 """
 import nltk
+import re
 import sys
 
 TERMINALS = """
@@ -23,7 +24,13 @@ V -> "smiled" | "tell" | "were"
 """
 
 NONTERMINALS = """
-S -> N V
+S -> NP VP | S Conj S
+VP -> V | V NP | V PP | AdvP VP | VP AdvP | VP Conj VP
+PP -> P NP
+NP -> Nbar | Det Nbar
+AP -> Adj | Adj AP
+AdvP -> Adv
+Nbar -> N | AP Nbar | Nbar PP
 """
 
 grammar = nltk.CFG.fromstring(NONTERMINALS + TERMINALS)
@@ -37,7 +44,10 @@ def preprocess(sentence):
     and removing any word that does not contain at least one alphabetic
     character.
     """
-    raise NotImplementedError
+    words = nltk.word_tokenize(sentence)
+    words = [x.lower() for x in words]
+    words = [x for x in words if re.search('[a-zA-Z]', x)]
+    return words
 
 
 def np_chunk(tree):
@@ -47,7 +57,7 @@ def np_chunk(tree):
     whose label is "NP" that does not itself contain any other
     noun phrases as subtrees.
     """
-    raise NotImplementedError
+    return []
 
 
 def main():
