@@ -1,4 +1,7 @@
+from collections import defaultdict
+import math
 import os
+import string
 import sys
 
 import nltk
@@ -27,15 +30,32 @@ def load_files(directory: str) -> dict:
     return file_dict
 
 
-def tokenize(document):
-    """
-    Given a document (represented as a string), return a list of all of the
-    words in that document, in order.
+def tokenize(document: string) -> list:
+    """Given a document (represented as a string), return a list of all of the
+     words in that document, in order.
 
     Process document by coverting all words to lowercase, and removing any
-    punctuation or English stopwords.
+     punctuation or English stopwords.
+
+    Args:
+        document (string): String of text to be processed.
+
+    Returns:
+        list: List of processed words from the document.
     """
-    raise NotImplementedError
+    document = document.lower()
+    tokens = nltk.word_tokenize(document)
+
+    # filter out punctuation and stopwords
+    cleaned_tokens = []
+    for token in tokens:
+        # break into 2 if statements to reduce compute time
+        if token in string.punctuation:
+            continue
+        if token in nltk.corpus.stopwords.words('english'):
+            continue
+        cleaned_tokens.append(token)
+    return cleaned_tokens
 
 
 def compute_idfs(documents):
@@ -46,7 +66,19 @@ def compute_idfs(documents):
     Any word that appears in at least one of the documents should be in the
     resulting dictionary.
     """
-    raise NotImplementedError
+    num_docs = len(documents)
+
+    words_to_docs = defaultdict(set)
+    for doc in documents:
+        for word in documents[doc]:
+            words_to_docs[word].add(doc)
+
+    idf_scores = {}
+    for word in words_to_docs:
+        num_docs_word_appears = len(words_to_docs[word])
+        idf_scores[word] = math.log(num_docs / num_docs_word_appears)
+
+    return idf_scores
 
 
 def top_files(query, files, idfs, n):
