@@ -24,7 +24,7 @@ NONTERMINALS = """
 S -> NP VP | S Conj S
 VP -> V | V NP | V PP | AdvP VP | VP AdvP | VP Conj VP
 PP -> P NP
-NP -> Nbar | Det Nbar | Nbar Conj Nbar
+NP -> Nbar | Det Nbar | NP Conj NP
 AP -> Adj | Adj AP
 AdvP -> Adv | Adv AdvP
 Nbar -> N | AP Nbar | Nbar PP
