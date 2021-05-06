@@ -1,7 +1,7 @@
 """This module implements a noun-phrase parser.
 
 Examples:
-    $ python3 parser.py
+    $ python3 parser.py sentences/1.txt
 
 Timing:
 30 + 20 + 20
@@ -45,8 +45,8 @@ def preprocess(sentence):
     and removing any word that does not contain at least one alphabetic
     character.
     """
+    sentence = sentence.lower()
     words = nltk.word_tokenize(sentence)
-    words = [x.lower() for x in words]
     words = [x for x in words if re.search('[a-zA-Z]', x)]
     return words
 
@@ -58,11 +58,17 @@ def np_chunk(tree):
     whose label is "NP" that does not itself contain any other
     noun phrases as subtrees.
     """
-    return []
+    np_chunks = []
+    # retrieve all NP subtrees
+    for sub in tree.subtrees(filter=lambda t: t.label() == 'NP'):
+        # check if subtree contains any NP subtrees other than itself
+        np_subtrees = list(sub.subtrees(filter=lambda t: t.label() == 'NP'))
+        if len(np_subtrees) == 1:
+            np_chunks.append(sub)
+    return np_chunks
 
 
 def main():
-
     # If filename specified, read sentence from file
     if len(sys.argv) == 2:
         with open(sys.argv[1]) as f:
