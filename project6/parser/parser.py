@@ -1,10 +1,7 @@
-"""This module implements a noun-phrase parser.
+"""This module implements a noun-phrase chunker.
 
 Examples:
     $ python3 parser.py sentences/1.txt
-
-Timing:
-30 + 20 + 20
 """
 import nltk
 import re
@@ -23,7 +20,6 @@ V -> "arrived" | "came" | "chuckled" | "had" | "lit" | "said" | "sat"
 V -> "smiled" | "tell" | "were"
 """
 
-# consider using VP PP to account for multiple prepositional phrases (e.g. from x to y)
 NONTERMINALS = """
 S -> NP VP | S Conj S
 VP -> V | V NP | V PP | AdvP VP | VP AdvP | VP Conj VP
@@ -38,12 +34,16 @@ grammar = nltk.CFG.fromstring(NONTERMINALS + TERMINALS)
 parser = nltk.ChartParser(grammar)
 
 
-def preprocess(sentence):
-    """
-    Convert `sentence` to a list of its words.
-    Pre-process sentence by converting all characters to lowercase
-    and removing any word that does not contain at least one alphabetic
-    character.
+def preprocess(sentence: str) -> list:
+    """Convert `sentence` to a list of its words. Pre-process sentence by
+     converting all characters to lowercase and removing any word that does not
+     contain at least one alphabetic character.
+
+    Args:
+        sentence (str): String sentence to be tokenized.
+
+    Returns:
+        list: Tokenized words.
     """
     sentence = sentence.lower()
     words = nltk.word_tokenize(sentence)
@@ -51,12 +51,16 @@ def preprocess(sentence):
     return words
 
 
-def np_chunk(tree):
-    """
-    Return a list of all noun phrase chunks in the sentence tree.
-    A noun phrase chunk is defined as any subtree of the sentence
-    whose label is "NP" that does not itself contain any other
-    noun phrases as subtrees.
+def np_chunk(tree: nltk.Tree) -> list:
+    """Return a list of all noun phrase chunks in the sentence tree. A noun
+     phrase chunk is defined as any subtree of the sentence whose label is "NP"
+     that does not itself contain any other noun phrases as subtrees.
+
+    Args:
+        tree (nltk.Tree): Sentence parse tree.
+
+    Returns:
+        list: List of subtrees where root node is labeled 'NP'.
     """
     np_chunks = []
     # retrieve all NP subtrees

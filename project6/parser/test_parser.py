@@ -1,7 +1,7 @@
 from nltk import Tree
 import pytest
 
-from parser import preprocess, parser
+from parser import preprocess, parser, np_chunk
 
 
 @pytest.mark.parametrize(
@@ -175,4 +175,32 @@ def test_parser_10():
     # breakpoint()
     # result.pretty_print()
     expected = Tree('S', [Tree('NP', [Tree('Nbar', [Tree('N', ['i'])])]), Tree('VP', [Tree('V', ['had']), Tree('NP', [Tree('Det', ['a']), Tree('Nbar', [Tree('AP', [Tree('Adj', ['little']), Tree('AP', [Tree('Adj', ['moist']), Tree('AP', [Tree('Adj', ['red'])])])]), Tree('Nbar', [Tree('Nbar', [Tree('Nbar', [Tree('N', ['paint'])]), Tree('PP', [Tree('P', ['in']), Tree('NP', [Tree('Det', ['the']), Tree('Nbar', [Tree('N', ['palm'])])])])]), Tree('PP', [Tree('P', ['of']), Tree('NP', [Tree('Det', ['my']), Tree('Nbar', [Tree('N', ['hand'])])])])])])])])])
+    assert result == expected
+
+def test_np_chunk_1():
+    # simple test with one NP
+    tree = Tree('S', [Tree('NP', ['simple'])])
+    expected = [Tree('NP', ['simple'])]
+    result = np_chunk(tree)
+    assert result == expected
+
+def test_np_chunk_2():
+    # nested NP
+    tree = Tree('NP', [Tree('NP', ['simple'])])
+    expected = [Tree('NP', ['simple'])]
+    result = np_chunk(tree)
+    assert result == expected
+
+def test_np_chunk_3():
+    # doubly nested NP
+    tree = Tree('NP', [Tree('NP', ['simple', Tree('NP', ['sentence'])])])
+    expected = [Tree('NP', ['sentence'])]
+    result = np_chunk(tree)
+    assert result == expected
+
+def test_np_chunk_4():
+    # two NPs side-by-side
+    tree = Tree('S', [Tree('NP', [Tree('Adj', ['simple']), Tree('N', ['sentence'])]), Tree('NP', [Tree('Conj', ['and']), Tree('N', ['another'])])])
+    expected = [Tree('NP', [Tree('Adj', ['simple']), Tree('N', ['sentence'])]), Tree('NP', [Tree('Conj', ['and']), Tree('N', ['another'])])]
+    result = np_chunk(tree)
     assert result == expected
